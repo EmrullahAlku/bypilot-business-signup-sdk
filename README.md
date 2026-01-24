@@ -1,43 +1,45 @@
 # ByPilot Business Signup SDK
 
-Business hesaplar için OAuth ve Embedded Signup SDK'sı (WhatsApp, Instagram, Facebook vb.)
+**[🇹🇷 Türkçe](README.tr.md) | 🇺🇸 English**
 
-## 📦 Paketler
+OAuth and Embedded Signup SDK for business accounts (WhatsApp, Instagram, Facebook, etc.)
 
-Bu monorepo 2 paket içerir:
+## 📦 Packages
 
-- **`bypilot-sdk/`** - Ana SDK paketi
-- **`playground/`** - Test ve demo uygulaması
+This monorepo contains 2 packages:
 
-## 🚀 Kurulum
+- **`bypilot-sdk/`** - Main SDK package
+- **`playground/`** - Test and demo application
+
+## 🚀 Installation
 
 ```bash
-# Tüm bağımlılıkları yükle
+# Install all dependencies
 npm install
 
-# SDK'yı build et
+# Build the SDK
 npm run build
 
-# Local geliştirme için link'le
+# Link for local development
 npm run link:local
 ```
 
-## 🔧 Geliştirme
+## 🔧 Development
 
 ```bash
-# SDK'yı watch modda çalıştır
+# Run SDK in watch mode
 npm run dev:sdk
 
-# Playground'u geliştirici modunda çalıştır
+# Run playground in development mode
 npm run dev:playground
 
-# Her ikisini birden build et
+# Build both packages
 npm run build:all
 ```
 
-## 📝 Kullanım
+## 📝 Usage
 
-### NPM'den Yükleme
+### Install from NPM
 
 ```bash
 npm install bypilot-business-signup-sdk
@@ -61,25 +63,25 @@ const result = await whatsapp.loginWithPopup();
 
 ## 🏗️ Playground
 
-Playground, SDK'yı test etmek için hazır React uygulamasıdır:
+The playground is a ready-to-use React application for testing the SDK:
 
 ```bash
 cd playground
 npm run dev
 ```
 
-## 📚 API Dokümantasyonu
+## 📚 API Documentation
 
-Detaylı API dokümantasyonu için `bypilot-sdk/` klasörüne bakın.
+For detailed API documentation, see the `bypilot-sdk/` folder.
 
-## 🤝 Katkıda Bulunma
+## 🤝 Contributing
 
-1. Fork edin
-2. Feature branch oluşturun (`git checkout -b feature/amazing-feature`)
-3. Commit edin (`git commit -m 'Add amazing feature'`)
-4. Push edin (`git push origin feature/amazing-feature`)
-5. Pull Request açın
+1. Fork the repository
+2. Create a feature branch (`git checkout -b feature/amazing-feature`)
+3. Commit your changes (`git commit -m 'Add amazing feature'`)
+4. Push to the branch (`git push origin feature/amazing-feature`)
+5. Open a Pull Request
 
-## 📄 Lisans
+## 📄 License
 
-MIT License - Detaylar için [LICENSE](LICENSE) dosyasına bakın.
+MIT License - See [LICENSE](LICENSE) file for details.
