@@ -38,9 +38,9 @@ jobs:
         working-directory: ./bypilot-sdk
         run: |
           if [[ ${{ github.ref }} == *"beta"* ]]; then
-            npm publish --tag beta --provenance --access public
+            npm publish --tag beta --access public
           else
-            npm publish --provenance --access public
+            npm publish --access public
           fi
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
