@@ -1,6 +1,6 @@
 {
   "name": "bypilot-business-signup-sdk",
-  "version": "0.1.0-beta.1",
+  "version": "0.1.0-beta.7",
   "description": "Business hesaplar için OAuth ve Embedded Signup SDK'sı (WhatsApp, Instagram, Facebook vb.)",
   "author": "",
   "license": "MIT",
