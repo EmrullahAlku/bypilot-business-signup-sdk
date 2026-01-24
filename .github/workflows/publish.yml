@@ -8,7 +8,7 @@ on:
 jobs:
   publish:
     runs-on: ubuntu-latest
-    
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -34,10 +34,11 @@ jobs:
       - name: Publish to NPM
         working-directory: ./bypilot-sdk
         run: |
-          if [[ ${{ github.ref }} == *"beta"* ]]; then
+          if [[ "${{ github.ref }}" == *"beta"* ]]; then
             npm publish --tag beta --access public
           else
             npm publish --access public
           fi
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+          NPM_CONFIG_PROVENANCE: false
