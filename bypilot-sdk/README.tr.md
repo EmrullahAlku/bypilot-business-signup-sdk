@@ -15,28 +15,28 @@ npm install bypilot-business-signup-sdk
 ### WhatsApp Provider
 
 ```typescript
-import { WhatsAppProvider } from 'bypilot-business-signup-sdk';
+import { WhatsAppProvider } from "bypilot-business-signup-sdk";
 
 // Provider'ı başlat
 const whatsapp = new WhatsAppProvider({
-  clientId: 'meta_app_id_niz',
-  configId: 'embedded_signup_config_id_niz',
+  clientId: "meta_app_id_niz",
+  configId: "embedded_signup_config_id_niz",
   redirectUri: window.location.origin,
-  storage: 'localStorage', // veya 'sessionStorage'
-  graphApiVersion: 'v21.0', // isteğe bağlı
-  sdkVersion: 'v21.0' // isteğe bağlı
+  storage: "localStorage", // veya 'sessionStorage'
+  graphApiVersion: "v21.0", // isteğe bağlı
+  sdkVersion: "v21.0", // isteğe bağlı
 });
 
 // Popup ile giriş yap
 try {
   const result = await whatsapp.loginWithPopup();
-  
+
   if (result.success) {
-    console.log('Access Token:', result.token.accessToken);
-    console.log('Session Bilgisi:', result.sessionInfo);
+    console.log("Access Token:", result.token.accessToken);
+    console.log("Session Bilgisi:", result.sessionInfo);
   }
 } catch (error) {
-  console.error('Giriş başarısız:', error);
+  console.error("Giriş başarısız:", error);
 }
 
 // Mevcut session'ı al
@@ -51,14 +51,14 @@ whatsapp.logout();
 
 ### WhatsApp Provider Seçenekleri
 
-| Seçenek | Tip | Gerekli | Açıklama |
-|---------|-----|---------|----------|
-| `clientId` | string | ✅ | Meta App ID'niz |
-| `configId` | string | ✅ | Embedded Signup Configuration ID |
-| `redirectUri` | string | ✅ | Yönlendirme URI'si (Meta App'te kayıtlı olmalı) |
-| `storage` | `'localStorage'` \| `'sessionStorage'` | ❌ | Token saklama türü (varsayılan: `localStorage`) |
-| `graphApiVersion` | string | ❌ | Graph API versiyonu (varsayılan: `v21.0`) |
-| `sdkVersion` | string | ❌ | Facebook SDK versiyonu (varsayılan: `v21.0`) |
+| Seçenek           | Tip                                    | Gerekli | Açıklama                                        |
+| ----------------- | -------------------------------------- | ------- | ----------------------------------------------- |
+| `clientId`        | string                                 | ✅      | Meta App ID'niz                                 |
+| `configId`        | string                                 | ✅      | Embedded Signup Configuration ID                |
+| `redirectUri`     | string                                 | ✅      | Yönlendirme URI'si (Meta App'te kayıtlı olmalı) |
+| `storage`         | `'localStorage'` \| `'sessionStorage'` | ❌      | Token saklama türü (varsayılan: `localStorage`) |
+| `graphApiVersion` | string                                 | ❌      | Graph API versiyonu (varsayılan: `v21.0`)       |
+| `sdkVersion`      | string                                 | ❌      | Facebook SDK versiyonu (varsayılan: `v21.0`)    |
 
 ## 📚 API Referansı
 
@@ -67,20 +67,25 @@ whatsapp.logout();
 #### Metodlar
 
 ##### `loginWithPopup(): Promise<AuthResult>`
+
 WhatsApp Business kimlik doğrulama için popup açar.
 
 **Dönüş:** `AuthResult` nesnesine çözümlenen Promise.
 
 ##### `logout(): void`
+
 Saklanan token'ları ve session verilerini temizler.
 
 ##### `getAccessToken(): string | null`
+
 Mevcut access token'ı döndürür, kimlik doğrulanmamışsa null.
 
 ##### `isAuthenticated(): boolean`
+
 Kullanıcı şu anda kimlik doğrulanmışsa true döndürür.
 
 ##### `getSessionInfoListener(callback: (info: WhatsAppSessionInfo) => void): () => void`
+
 Session bilgisi güncellemelerini dinler.
 
 **Dönüş:** Abonelikten çıkma fonksiyonu.
@@ -96,8 +101,8 @@ Provider şu olayları yayar:
 
 ```typescript
 // Olayları dinle
-const unsubscribe = whatsapp.on('auth:success', (result) => {
-  console.log('Kimlik doğrulama başarılı!', result);
+const unsubscribe = whatsapp.on("auth:success", (result) => {
+  console.log("Kimlik doğrulama başarılı!", result);
 });
 
 // Dinlemeyi durdurmayı unutmayın
@@ -124,10 +129,10 @@ interface AuthResult {
 
 ```typescript
 interface WhatsAppSessionInfo {
-  wabaId?: string;          // WhatsApp Business Account ID
-  phoneNumberId?: string;   // Telefon Numarası ID
-  phoneNumber?: string;     // Telefon Numarası
-  businessId?: string;      // Business Manager ID
+  wabaId?: string; // WhatsApp Business Account ID
+  phoneNumberId?: string; // Telefon Numarası ID
+  phoneNumber?: string; // Telefon Numarası
+  businessId?: string; // Business Manager ID
 }
 ```
 
@@ -149,6 +154,7 @@ interface WhatsAppSessionInfo {
 ### 3. Redirect URI Ayarla
 
 Meta app ayarlarına redirect URI'nizi ekleyin:
+
 - Geliştirme için: `http://localhost:3000`
 - Production için: `https://yourdomain.com`
 
@@ -156,9 +162,9 @@ Meta app ayarlarına redirect URI'nizi ekleyin:
 
 ```typescript
 const whatsapp = new WhatsAppProvider({
-  clientId: 'META_APP_ID_NIZ',
-  configId: 'CONFIG_ID_NIZ',
-  redirectUri: window.location.origin
+  clientId: "META_APP_ID_NIZ",
+  configId: "CONFIG_ID_NIZ",
+  redirectUri: window.location.origin,
 });
 ```
 
@@ -167,12 +173,12 @@ const whatsapp = new WhatsAppProvider({
 ```typescript
 try {
   const result = await whatsapp.loginWithPopup();
-  
+
   if (!result.success) {
-    console.error('Kimlik doğrulama başarısız:', result.error);
+    console.error("Kimlik doğrulama başarısız:", result.error);
   }
 } catch (error) {
-  console.error('Beklenmeyen hata:', error);
+  console.error("Beklenmeyen hata:", error);
 }
 ```
 
