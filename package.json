@@ -1,0 +1,27 @@
+{
+  "name": "bypilot-business-signup-sdk-workspace",
+  "version": "0.1.0",
+  "private": true,
+  "workspaces": [
+    "bypilot-sdk",
+    "playground"
+  ],
+  "scripts": {
+    "build": "npm run build -w bypilot-sdk",
+    "dev:sdk": "npm run dev -w bypilot-sdk",
+    "dev:playground": "npm run dev -w playground",
+    "build:all": "npm run build -w bypilot-sdk && npm run build -w playground",
+    "test": "npm test --workspaces --if-present",
+    "link:local": "npm run build -w bypilot-sdk && npm link -w bypilot-sdk && npm link bypilot-sdk -w playground"
+  },
+  "devDependencies": {
+    "typescript": "^5.3.0"
+  },
+  "description": "ByPilot Business Signup SDK with test playground",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/yourusername/bypilot-business-signup-sdk.git"
+  },
+  "author": "",
+  "license": "MIT"
+}
