@@ -4,8 +4,10 @@ import type {
   WhatsAppConfig,
   WhatsAppAuthResponse,
   WhatsAppSessionInfo,
-  FBLoginResponse
+  FBLoginResponse,
+  WhatsAppEmbeddedSignupEvent
 } from './types';
+import { isEmbeddedSignupSuccess, isEmbeddedSignupError } from './types';
 
 /**
  * WhatsApp Embedded Signup Provider
@@ -290,13 +292,8 @@ export class WhatsAppProvider extends BaseProvider {
           if (data.type === 'WA_EMBEDDED_SIGNUP') {
             window.removeEventListener('message', handler);
 
-            const sessionInfo: WhatsAppSessionInfo = {
-              accessToken: data.data?.access_token ?? '',
-              phoneNumberId: data.data?.phone_number_id,
-              wabaId: data.data?.waba_id,
-              phoneNumber: data.data?.phone_number,
-              businessId: data.data?.business_id
-            };
+            const embeddedEvent = data as WhatsAppEmbeddedSignupEvent;
+            const sessionInfo = this.parseEmbeddedSignupEvent(embeddedEvent);
 
             resolve(sessionInfo);
           }
@@ -307,6 +304,44 @@ export class WhatsAppProvider extends BaseProvider {
 
       window.addEventListener('message', handler);
     });
+  }
+
+  /**
+   * Embedded Signup event'ini parse et ve WhatsAppSessionInfo'ya dönüştür
+   */
+  private parseEmbeddedSignupEvent(event: WhatsAppEmbeddedSignupEvent): WhatsAppSessionInfo {
+    // Raw event'i her zaman sakla
+    const sessionInfo: WhatsAppSessionInfo = {
+      accessToken: '',
+      rawEvent: event
+    };
+
+    if (isEmbeddedSignupSuccess(event)) {
+      // Başarılı event
+      sessionInfo.phoneNumberId = event.data.phone_number_id;
+      sessionInfo.wabaId = event.data.waba_id;
+      sessionInfo.businessId = event.data.business_id;
+      sessionInfo.adAccountIds = event.data.ad_account_ids;
+      sessionInfo.pageIds = event.data.page_ids;
+      sessionInfo.datasetIds = event.data.dataset_ids;
+    } else if (isEmbeddedSignupError(event)) {
+      // Hata event
+      sessionInfo.error = {
+        message: event.data.error_message,
+        errorId: event.data.error_id,
+        sessionId: event.data.session_id,
+        timestamp: event.data.timestamp
+      };
+    } else {
+      // Bilinmeyen format - raw data'dan çıkarım yap (geriye uyumluluk)
+      const rawData = event.data as Record<string, unknown>;
+      sessionInfo.phoneNumberId = rawData.phone_number_id as string | undefined;
+      sessionInfo.wabaId = rawData.waba_id as string | undefined;
+      sessionInfo.businessId = rawData.business_id as string | undefined;
+      sessionInfo.phoneNumber = rawData.phone_number as string | undefined;
+    }
+
+    return sessionInfo;
   }
 
   /**
@@ -366,7 +401,8 @@ export class WhatsAppProvider extends BaseProvider {
   /**
    * Session info al (Embedded Signup sonrası)
    *
-   * Facebook SDK message event'i ile session bilgilerini alır
+   * Facebook SDK message event'i ile session bilgilerini alır.
+   * Type-safe parsing ile başarılı ve hata durumlarını ayırır.
    */
   getSessionInfoListener(callback: (info: WhatsAppSessionInfo) => void): () => void {
     const handler = (event: MessageEvent) => {
@@ -381,12 +417,8 @@ export class WhatsAppProvider extends BaseProvider {
         const data = JSON.parse(event.data);
 
         if (data.type === 'WA_EMBEDDED_SIGNUP') {
-          const sessionInfo: WhatsAppSessionInfo = {
-            accessToken: data.data?.access_token ?? '',
-            phoneNumberId: data.data?.phone_number_id,
-            wabaId: data.data?.waba_id,
-            phoneNumber: data.data?.phone_number
-          };
+          const embeddedEvent = data as WhatsAppEmbeddedSignupEvent;
+          const sessionInfo = this.parseEmbeddedSignupEvent(embeddedEvent);
 
           callback(sessionInfo);
         }

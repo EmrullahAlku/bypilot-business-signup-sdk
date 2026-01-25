@@ -124,7 +124,82 @@ export interface WhatsAppAuthResponse {
 }
 
 /**
- * Embedded Signup session info
+ * WA_EMBEDDED_SIGNUP event'inin başarılı durumundaki data
+ */
+export interface WhatsAppEmbeddedSignupSuccessData {
+  phone_number_id: string;
+  waba_id: string;
+  business_id: string;
+  ad_account_ids?: string[];
+  page_ids?: string[];
+  dataset_ids?: string[];
+}
+
+/**
+ * WA_EMBEDDED_SIGNUP event'inin hata durumundaki data
+ */
+export interface WhatsAppEmbeddedSignupErrorData {
+  error_message: string;
+  error_id: string;
+  session_id: string;
+  timestamp: string;
+}
+
+/**
+ * WA_EMBEDDED_SIGNUP başarılı event payload
+ */
+export interface WhatsAppEmbeddedSignupSuccessEvent {
+  type: 'WA_EMBEDDED_SIGNUP';
+  event: string; // 'FINISH', 'SUBMIT' vs.
+  data: WhatsAppEmbeddedSignupSuccessData;
+}
+
+/**
+ * WA_EMBEDDED_SIGNUP hata event payload
+ */
+export interface WhatsAppEmbeddedSignupErrorEvent {
+  type: 'WA_EMBEDDED_SIGNUP';
+  event: 'CANCEL';
+  data: WhatsAppEmbeddedSignupErrorData;
+}
+
+/**
+ * WA_EMBEDDED_SIGNUP bilinmeyen format (geriye uyumluluk)
+ */
+export interface WhatsAppEmbeddedSignupUnknownEvent {
+  type: 'WA_EMBEDDED_SIGNUP';
+  event: string;
+  data: Record<string, unknown>;
+}
+
+/**
+ * WA_EMBEDDED_SIGNUP event union type
+ */
+export type WhatsAppEmbeddedSignupEvent =
+  | WhatsAppEmbeddedSignupSuccessEvent
+  | WhatsAppEmbeddedSignupErrorEvent
+  | WhatsAppEmbeddedSignupUnknownEvent;
+
+/**
+ * Type guard: Başarılı event mi kontrol et
+ */
+export function isEmbeddedSignupSuccess(
+  event: WhatsAppEmbeddedSignupEvent
+): event is WhatsAppEmbeddedSignupSuccessEvent {
+  return event.event !== 'CANCEL' && 'phone_number_id' in event.data;
+}
+
+/**
+ * Type guard: Hata event mi kontrol et
+ */
+export function isEmbeddedSignupError(
+  event: WhatsAppEmbeddedSignupEvent
+): event is WhatsAppEmbeddedSignupErrorEvent {
+  return event.event === 'CANCEL' && 'error_message' in event.data;
+}
+
+/**
+ * Embedded Signup session info (normalize edilmiş)
  */
 export interface WhatsAppSessionInfo {
   /**
@@ -156,6 +231,36 @@ export interface WhatsAppSessionInfo {
    * Phone number verified
    */
   phoneNumberVerified?: boolean;
+
+  /**
+   * Ad account IDs (optional)
+   */
+  adAccountIds?: string[];
+
+  /**
+   * Page IDs (optional)
+   */
+  pageIds?: string[];
+
+  /**
+   * Dataset IDs (optional)
+   */
+  datasetIds?: string[];
+
+  /**
+   * Raw event data (tüm orijinal veri - uyuşmazlık kontrolü için)
+   */
+  rawEvent?: WhatsAppEmbeddedSignupEvent;
+
+  /**
+   * Hata bilgisi (eğer event CANCEL ise)
+   */
+  error?: {
+    message: string;
+    errorId: string;
+    sessionId: string;
+    timestamp: string;
+  };
 }
 
 /**

@@ -3,13 +3,15 @@ import {
   WhatsAppProvider,
   type AuthResult,
   type WhatsAppSessionInfo,
+  isEmbeddedSignupSuccess,
+  isEmbeddedSignupError,
 } from "bypilot-business-signup-sdk";
 import "./App.css";
 
 // WhatsApp Provider instance (config değerlerini kendi Meta App bilgilerinle değiştir)
 const whatsapp = new WhatsAppProvider({
-  clientId: "your_client_id", // Meta Developer'dan al
-  configId: "your_config_id", // Embedded Signup config ID
+  clientId: "your_meta_app_id_here", // Meta Developer'dan al
+  configId: "your_meta_config_id_here", // Embedded Signup config ID
   redirectUri: window.location.origin,
   storage: "localStorage",
   graphApiVersion: "v24.0", // 🆕 Graph API version (default: v21.0)
@@ -63,9 +65,24 @@ function App() {
 
     // Session info listener (WhatsApp Embedded Signup)
     const unsubSession = whatsapp.getSessionInfoListener((info) => {
-      addLog(
-        `📱 Session info alındı: WABA=${info.wabaId}, Phone=${info.phoneNumberId}`,
-      );
+      // Type-safe kontrol
+      if (info.rawEvent) {
+        if (isEmbeddedSignupSuccess(info.rawEvent)) {
+          addLog(
+            `📱 Session info alındı: WABA=${info.wabaId}, Phone=${info.phoneNumberId}, Event=${info.rawEvent.event}`,
+          );
+        } else if (isEmbeddedSignupError(info.rawEvent)) {
+          addLog(
+            `❌ Embedded Signup hatası: ${info.error?.message} (ID: ${info.error?.errorId})`,
+          );
+        } else {
+          addLog(`⚠️ Bilinmeyen event formatı - raw data mevcut`);
+        }
+      } else {
+        addLog(
+          `📱 Session info alındı: WABA=${info.wabaId}, Phone=${info.phoneNumberId}`,
+        );
+      }
       setSessionInfo(info);
     });
 
@@ -155,34 +172,101 @@ function App() {
       {sessionInfo && (
         <div className="card">
           <h2>Session Bilgileri</h2>
-          <table>
-            <tbody>
-              <tr>
-                <td>WABA ID:</td>
-                <td>
-                  <code>{sessionInfo.wabaId || "-"}</code>
-                </td>
-              </tr>
-              <tr>
-                <td>Phone Number ID:</td>
-                <td>
-                  <code>{sessionInfo.phoneNumberId || "-"}</code>
-                </td>
-              </tr>
-              <tr>
-                <td>Phone Number:</td>
-                <td>
-                  <code>{sessionInfo.phoneNumber || "-"}</code>
-                </td>
-              </tr>
-              <tr>
-                <td>Business ID:</td>
-                <td>
-                  <code>{sessionInfo.businessId || "-"}</code>
-                </td>
-              </tr>
-            </tbody>
-          </table>
+          {sessionInfo.error ? (
+            <div className="error-section">
+              <h3>Hata Bilgisi</h3>
+              <table>
+                <tbody>
+                  <tr>
+                    <td>Hata Mesajı:</td>
+                    <td>
+                      <code>{sessionInfo.error.message}</code>
+                    </td>
+                  </tr>
+                  <tr>
+                    <td>Error ID:</td>
+                    <td>
+                      <code>{sessionInfo.error.errorId}</code>
+                    </td>
+                  </tr>
+                  <tr>
+                    <td>Session ID:</td>
+                    <td>
+                      <code>{sessionInfo.error.sessionId}</code>
+                    </td>
+                  </tr>
+                  <tr>
+                    <td>Timestamp:</td>
+                    <td>
+                      <code>{sessionInfo.error.timestamp}</code>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          ) : (
+            <table>
+              <tbody>
+                <tr>
+                  <td>WABA ID:</td>
+                  <td>
+                    <code>{sessionInfo.wabaId || "-"}</code>
+                  </td>
+                </tr>
+                <tr>
+                  <td>Phone Number ID:</td>
+                  <td>
+                    <code>{sessionInfo.phoneNumberId || "-"}</code>
+                  </td>
+                </tr>
+                <tr>
+                  <td>Phone Number:</td>
+                  <td>
+                    <code>{sessionInfo.phoneNumber || "-"}</code>
+                  </td>
+                </tr>
+                <tr>
+                  <td>Business ID:</td>
+                  <td>
+                    <code>{sessionInfo.businessId || "-"}</code>
+                  </td>
+                </tr>
+                {sessionInfo.adAccountIds &&
+                  sessionInfo.adAccountIds.length > 0 && (
+                    <tr>
+                      <td>Ad Account IDs:</td>
+                      <td>
+                        <code>{sessionInfo.adAccountIds.join(", ")}</code>
+                      </td>
+                    </tr>
+                  )}
+                {sessionInfo.pageIds && sessionInfo.pageIds.length > 0 && (
+                  <tr>
+                    <td>Page IDs:</td>
+                    <td>
+                      <code>{sessionInfo.pageIds.join(", ")}</code>
+                    </td>
+                  </tr>
+                )}
+                {sessionInfo.datasetIds &&
+                  sessionInfo.datasetIds.length > 0 && (
+                    <tr>
+                      <td>Dataset IDs:</td>
+                      <td>
+                        <code>{sessionInfo.datasetIds.join(", ")}</code>
+                      </td>
+                    </tr>
+                  )}
+              </tbody>
+            </table>
+          )}
+
+          {sessionInfo.rawEvent && (
+            <details className="raw-data">
+              <summary>Raw Event Data</summary>
+              <pre>{JSON.stringify(sessionInfo.rawEvent, null, 2)}</pre>
+            </details>
+          )}
         </div>
       )}
 
