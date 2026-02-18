@@ -1,7 +1,7 @@
 import type { OAuthToken, StorageStrategy } from './types';
 
 /**
- * Token yönetimi için storage wrapper
+ * Token storage wrapper for managing OAuth tokens
  */
 export class TokenManager {
   private strategy: StorageStrategy;
@@ -14,7 +14,7 @@ export class TokenManager {
   }
 
   /**
-   * Token'ı storage'a kaydet
+   * Save token to storage
    */
   save(token: OAuthToken): void {
     const serialized = JSON.stringify(token);
@@ -38,7 +38,7 @@ export class TokenManager {
   }
 
   /**
-   * Token'ı storage'dan getir
+   * Get token from storage
    */
   get(): OAuthToken | null {
     let serialized: string | null = null;
@@ -70,7 +70,7 @@ export class TokenManager {
   }
 
   /**
-   * Token'ı sil
+   * Clear token from storage
    */
   clear(): void {
     switch (this.strategy) {
@@ -92,7 +92,7 @@ export class TokenManager {
   }
 
   /**
-   * Token'ın geçerli olup olmadığını kontrol et
+   * Check if token is valid
    */
   isValid(): boolean {
     const token = this.get();
@@ -106,7 +106,7 @@ export class TokenManager {
   }
 
   /**
-   * Token'ın süresinin dolmasına kalan süre (ms)
+   * Get time until token expiry (ms)
    */
   getTimeUntilExpiry(): number | null {
     const token = this.get();

@@ -1,66 +1,66 @@
 # ByPilot Business Signup SDK
 
-**🇹🇷 Türkçe | [🇺🇸 English](README.md)**
+**Turkce | [English](README.md)**
 
-Business hesaplar için OAuth ve Embedded Signup SDK'sı (WhatsApp, Instagram, Facebook vb.)
+Business hesaplar icin OAuth ve Embedded Signup SDK'si (WhatsApp, Instagram, Facebook vb.)
 
-## 🚀 Kurulum
+## Kurulum
 
 ```bash
 npm install bypilot-business-signup-sdk
 ```
 
-## 📝 Hızlı Başlangıç
+## Hizli Baslangic
 
 ### WhatsApp Provider
 
 ```typescript
 import { WhatsAppProvider } from "bypilot-business-signup-sdk";
 
-// Provider'ı başlat
+// Provider'i baslat
 const whatsapp = new WhatsAppProvider({
   clientId: "meta_app_id_niz",
   configId: "embedded_signup_config_id_niz",
   redirectUri: window.location.origin,
   storage: "localStorage", // veya 'sessionStorage'
-  graphApiVersion: "v21.0", // isteğe bağlı
-  sdkVersion: "v21.0", // isteğe bağlı
+  graphApiVersion: "v24.0", // istege bagli
+  sdkVersion: "v24.0", // istege bagli
 });
 
-// Popup ile giriş yap
+// Popup ile giris yap
 try {
   const result = await whatsapp.loginWithPopup();
 
   if (result.success) {
-    console.log("Access Token:", result.token.accessToken);
-    console.log("Session Bilgisi:", result.sessionInfo);
+    console.log("Authorization Code:", result.token.code);
+    console.log("Session Bilgisi:", result.raw?.sessionInfo);
   }
 } catch (error) {
-  console.error("Giriş başarısız:", error);
+  console.error("Giris basarisiz:", error);
 }
 
-// Mevcut session'ı al
-const token = whatsapp.getAccessToken();
+// Mevcut authorization code'u al
+const code = whatsapp.getCode();
 const isAuthenticated = whatsapp.isAuthenticated();
 
-// Çıkış yap
+// Cikis yap
 whatsapp.logout();
 ```
 
-## 🔧 Yapılandırma
+## Yapilandirma
 
-### WhatsApp Provider Seçenekleri
+### WhatsApp Provider Secenekleri
 
-| Seçenek           | Tip                                    | Gerekli | Açıklama                                        |
-| ----------------- | -------------------------------------- | ------- | ----------------------------------------------- |
-| `clientId`        | string                                 | ✅      | Meta App ID'niz                                 |
-| `configId`        | string                                 | ✅      | Embedded Signup Configuration ID                |
-| `redirectUri`     | string                                 | ✅      | Yönlendirme URI'si (Meta App'te kayıtlı olmalı) |
-| `storage`         | `'localStorage'` \| `'sessionStorage'` | ❌      | Token saklama türü (varsayılan: `localStorage`) |
-| `graphApiVersion` | string                                 | ❌      | Graph API versiyonu (varsayılan: `v21.0`)       |
-| `sdkVersion`      | string                                 | ❌      | Facebook SDK versiyonu (varsayılan: `v21.0`)    |
+| Secenek           | Tip                                    | Gerekli | Aciklama                                         |
+| ----------------- | -------------------------------------- | ------- | ------------------------------------------------ |
+| `clientId`        | string                                 | Evet    | Meta App ID'niz                                  |
+| `configId`        | string                                 | Evet    | Embedded Signup Configuration ID                 |
+| `redirectUri`     | string                                 | Evet    | Yonlendirme URI'si (Meta App'te kayitli olmali)  |
+| `storage`         | `'localStorage'` \| `'sessionStorage'` | Hayir   | Token saklama turu (varsayilan: `localStorage`)  |
+| `graphApiVersion` | string                                 | Hayir   | Graph API versiyonu (varsayilan: `v24.0`)        |
+| `sdkVersion`      | string                                 | Hayir   | Facebook SDK versiyonu (varsayilan: `v24.0`)     |
 
-## 📚 API Referansı
+## API Referansi
 
 ### WhatsAppProvider
 
@@ -68,48 +68,48 @@ whatsapp.logout();
 
 ##### `loginWithPopup(): Promise<AuthResult>`
 
-WhatsApp Business kimlik doğrulama için popup açar.
+WhatsApp Business kimlik dogrulama icin popup acar.
 
-**Dönüş:** `AuthResult` nesnesine çözümlenen Promise.
+**Donus:** `AuthResult` nesnesine cozumlenen Promise.
 
 ##### `logout(): void`
 
-Saklanan token'ları ve session verilerini temizler.
+Saklanan token'lari ve session verilerini temizler.
 
-##### `getAccessToken(): string | null`
+##### `getCode(): string | null`
 
-Mevcut access token'ı döndürür, kimlik doğrulanmamışsa null.
+Mevcut authorization code'u dondurur, kimlik dogrulanmamissa null.
 
 ##### `isAuthenticated(): boolean`
 
-Kullanıcı şu anda kimlik doğrulanmışsa true döndürür.
+Kullanici su anda kimlik dogrulanmissa true dondurur.
 
 ##### `getSessionInfoListener(callback: (info: WhatsAppSessionInfo) => void): () => void`
 
-Session bilgisi güncellemelerini dinler.
+Session bilgisi guncellemelerini dinler.
 
-**Dönüş:** Abonelikten çıkma fonksiyonu.
+**Donus:** Abonelikten cikma fonksiyonu.
 
 #### Olaylar
 
-Provider şu olayları yayar:
+Provider su olaylari yayar:
 
-- `auth:start` - Kimlik doğrulama süreci başlatıldı
-- `auth:success` - Kimlik doğrulama başarıyla tamamlandı
-- `auth:error` - Kimlik doğrulama başarısız
-- `auth:cancel` - Kullanıcı kimlik doğrulamayı iptal etti
+- `auth:start` - Kimlik dogrulama sureci baslatildi
+- `auth:success` - Kimlik dogrulama basariyla tamamlandi
+- `auth:error` - Kimlik dogrulama basarisiz
+- `auth:cancel` - Kullanici kimlik dogrulamayi iptal etti
 
 ```typescript
-// Olayları dinle
+// Olaylari dinle
 const unsubscribe = whatsapp.on("auth:success", (result) => {
-  console.log("Kimlik doğrulama başarılı!", result);
+  console.log("Kimlik dogrulama basarili!", result);
 });
 
-// Dinlemeyi durdurmayı unutmayın
+// Dinlemeyi durdurmayı unutmayin
 unsubscribe();
 ```
 
-### Tip Tanımlamaları
+### Tip Tanimlamalari
 
 #### AuthResult
 
@@ -117,11 +117,12 @@ unsubscribe();
 interface AuthResult {
   success: boolean;
   token?: {
-    accessToken: string;
-    expiresIn?: number;
+    code: string;
+    tokenType: string;
+    scope?: string;
   };
-  sessionInfo?: WhatsAppSessionInfo;
   error?: string;
+  raw?: Record<string, unknown>;
 }
 ```
 
@@ -129,34 +130,35 @@ interface AuthResult {
 
 ```typescript
 interface WhatsAppSessionInfo {
+  code: string; // Authorization code (backend'de token'a cevrilmeli)
   wabaId?: string; // WhatsApp Business Account ID
-  phoneNumberId?: string; // Telefon Numarası ID
-  phoneNumber?: string; // Telefon Numarası
+  phoneNumberId?: string; // Telefon Numarasi ID
+  phoneNumber?: string; // Telefon Numarasi
   businessId?: string; // Business Manager ID
 }
 ```
 
-## 🏗️ Kurulum Rehberi
+## Kurulum Rehberi
 
-### 1. Meta App Oluştur
+### 1. Meta App Olustur
 
 1. [Meta for Developers](https://developers.facebook.com/)'a git
-2. Yeni bir app oluştur
-3. WhatsApp Business Platform ürününü ekle
+2. Yeni bir app olustur
+3. WhatsApp Business Platform urununu ekle
 
-### 2. Embedded Signup Yapılandır
+### 2. Embedded Signup Yapilandir
 
-1. Meta app'inde WhatsApp → Configuration'a git
-2. Embedded Signup'ı ayarla
+1. Meta app'inde WhatsApp > Configuration'a git
+2. Embedded Signup'i ayarla
 3. Domain'ini allowlist'e ekle
 4. Configuration ID'ni al
 
 ### 3. Redirect URI Ayarla
 
-Meta app ayarlarına redirect URI'nizi ekleyin:
+Meta app ayarlarina redirect URI'nizi ekleyin:
 
-- Geliştirme için: `http://localhost:3000`
-- Production için: `https://yourdomain.com`
+- Gelistirme icin: `http://localhost:3000`
+- Production icin: `https://yourdomain.com`
 
 ### 4. Uygulama
 
@@ -168,31 +170,31 @@ const whatsapp = new WhatsAppProvider({
 });
 ```
 
-## 🔍 Hata Yönetimi
+## Hata Yonetimi
 
 ```typescript
 try {
   const result = await whatsapp.loginWithPopup();
 
   if (!result.success) {
-    console.error("Kimlik doğrulama başarısız:", result.error);
+    console.error("Kimlik dogrulama basarisiz:", result.error);
   }
 } catch (error) {
   console.error("Beklenmeyen hata:", error);
 }
 ```
 
-## 🎯 Tarayıcı Desteği
+## Tarayici Destegi
 
 - Chrome 80+
 - Firefox 74+
 - Safari 13.1+
 - Edge 80+
 
-## 📄 Lisans
+## Lisans
 
-MIT License - detaylar için [LICENSE](../LICENSE) dosyasına bakın.
+MIT License - detaylar icin [LICENSE](../LICENSE) dosyasina bakin.
 
-## 🤝 Katkıda Bulunma
+## Katkida Bulunma
 
-Katkı rehberi için ana [repository README](../README.md) dosyasına bakın.
+Katki rehberi icin ana [repository README](../README.md) dosyasina bakin.

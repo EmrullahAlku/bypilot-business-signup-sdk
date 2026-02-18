@@ -1,13 +1,13 @@
 import type { SDKEventType, SDKEventListener } from './types';
 
 /**
- * SDK için basit event emitter
+ * Simple event emitter for the SDK
  */
 export class EventEmitter {
   private listeners: Map<SDKEventType, Set<SDKEventListener>> = new Map();
 
   /**
-   * Event listener ekle
+   * Add event listener
    */
   on<T = unknown>(event: SDKEventType, listener: SDKEventListener<T>): () => void {
     if (!this.listeners.has(event)) {
@@ -16,12 +16,12 @@ export class EventEmitter {
 
     this.listeners.get(event)!.add(listener as SDKEventListener);
 
-    // Unsubscribe fonksiyonu döndür
+    // Return unsubscribe function
     return () => this.off(event, listener);
   }
 
   /**
-   * Event listener kaldır
+   * Remove event listener
    */
   off<T = unknown>(event: SDKEventType, listener: SDKEventListener<T>): void {
     const eventListeners = this.listeners.get(event);
@@ -31,7 +31,7 @@ export class EventEmitter {
   }
 
   /**
-   * Event tetikle
+   * Emit event
    */
   emit<T = unknown>(event: SDKEventType, data?: T): void {
     const eventListeners = this.listeners.get(event);
@@ -47,7 +47,7 @@ export class EventEmitter {
   }
 
   /**
-   * Tek seferlik event listener
+   * One-time event listener
    */
   once<T = unknown>(event: SDKEventType, listener: SDKEventListener<T>): () => void {
     const onceListener: SDKEventListener<T> = (data) => {
@@ -59,7 +59,7 @@ export class EventEmitter {
   }
 
   /**
-   * Tüm listener'ları temizle
+   * Remove all listeners
    */
   removeAllListeners(event?: SDKEventType): void {
     if (event) {

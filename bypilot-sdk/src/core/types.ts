@@ -1,8 +1,8 @@
 /**
- * OAuth token yapısı
+ * OAuth token structure
  */
 export interface OAuthToken {
-  accessToken: string;
+  code: string;
   refreshToken?: string;
   expiresAt?: number;
   tokenType: string;
@@ -10,12 +10,12 @@ export interface OAuthToken {
 }
 
 /**
- * Token storage stratejisi
+ * Token storage strategy
  */
 export type StorageStrategy = 'localStorage' | 'sessionStorage' | 'memory';
 
 /**
- * OAuth client konfigürasyonu
+ * OAuth client configuration
  */
 export interface OAuthConfig {
   clientId: string;
@@ -26,7 +26,7 @@ export interface OAuthConfig {
 }
 
 /**
- * Popup konfigürasyonu
+ * Popup configuration
  */
 export interface PopupConfig {
   width?: number;
@@ -46,14 +46,14 @@ export interface OAuthCallbackResponse {
 }
 
 /**
- * Provider base konfigürasyonu
+ * Provider base configuration
  */
 export interface ProviderConfig extends OAuthConfig {
   [key: string]: unknown;
 }
 
 /**
- * SDK event tipleri
+ * SDK event types
  */
 export type SDKEventType =
   | 'auth:start'

@@ -28,6 +28,16 @@
         "types": "./dist/providers/whatsapp/index.d.cts",
         "default": "./dist/whatsapp.cjs"
       }
+    },
+    "./facebook": {
+      "import": {
+        "types": "./dist/providers/facebook/index.d.ts",
+        "default": "./dist/facebook.js"
+      },
+      "require": {
+        "types": "./dist/providers/facebook/index.d.cts",
+        "default": "./dist/facebook.cjs"
+      }
     }
   },
   "files": [

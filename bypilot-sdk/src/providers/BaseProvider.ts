@@ -8,7 +8,7 @@ import type {
 } from '../core';
 
 /**
- * Tüm OAuth provider'ları için base class
+ * Base class for all OAuth providers
  */
 export abstract class BaseProvider extends EventEmitter {
   protected config: ProviderConfig;
@@ -16,12 +16,12 @@ export abstract class BaseProvider extends EventEmitter {
   protected popupManager: PopupManager;
 
   /**
-   * Provider adı (alt sınıflar override etmeli)
+   * Provider name (subclasses must override)
    */
   abstract readonly name: string;
 
   /**
-   * OAuth authorization URL'i
+   * OAuth authorization URL
    */
   protected abstract readonly authorizationEndpoint: string;
 
@@ -36,17 +36,17 @@ export abstract class BaseProvider extends EventEmitter {
   }
 
   /**
-   * Authorization URL'i oluştur
+   * Build authorization URL
    */
   protected abstract buildAuthorizationUrl(state: string): string;
 
   /**
-   * Callback'i işle ve token al
+   * Handle callback and extract code
    */
   protected abstract handleCallback(callbackData: Record<string, unknown>): Promise<AuthResult>;
 
   /**
-   * Random state oluştur
+   * Generate random state
    */
   protected generateState(): string {
     const array = new Uint8Array(32);
@@ -55,7 +55,7 @@ export abstract class BaseProvider extends EventEmitter {
   }
 
   /**
-   * Popup ile login başlat
+   * Start login via popup
    */
   async loginWithPopup(popupConfig?: PopupConfig): Promise<AuthResult> {
     this.emit('auth:start');
@@ -63,18 +63,18 @@ export abstract class BaseProvider extends EventEmitter {
     const state = this.config.state ?? this.generateState();
     const authUrl = this.buildAuthorizationUrl(state);
 
-    // State'i session'da sakla (CSRF koruması)
+    // Store state in session (CSRF protection)
     sessionStorage.setItem(`bypilot_state_${this.name}`, state);
 
     try {
       this.popupManager.open(authUrl, popupConfig);
 
-      // Callback bekle
+      // Wait for callback
       const callbackData = await this.popupManager.waitForCallback<Record<string, unknown>>(
         window.location.origin
       );
 
-      // State doğrula
+      // Validate state
       const savedState = sessionStorage.getItem(`bypilot_state_${this.name}`);
       if (callbackData.state !== savedState) {
         throw new Error('State mismatch - possible CSRF attack');
@@ -109,7 +109,7 @@ export abstract class BaseProvider extends EventEmitter {
   }
 
   /**
-   * Redirect ile login başlat
+   * Start login via redirect
    */
   loginWithRedirect(): void {
     this.emit('auth:start');
@@ -117,14 +117,14 @@ export abstract class BaseProvider extends EventEmitter {
     const state = this.config.state ?? this.generateState();
     const authUrl = this.buildAuthorizationUrl(state);
 
-    // State'i sakla
+    // Store state
     sessionStorage.setItem(`bypilot_state_${this.name}`, state);
 
     window.location.href = authUrl;
   }
 
   /**
-   * Redirect callback'ini işle (sayfa yüklendiğinde çağrılmalı)
+   * Handle redirect callback (should be called on page load)
    */
   async handleRedirectCallback(): Promise<AuthResult | null> {
     const urlParams = new URLSearchParams(window.location.search);
@@ -133,10 +133,10 @@ export abstract class BaseProvider extends EventEmitter {
     const error = urlParams.get('error');
 
     if (!code && !error) {
-      return null; // Callback değil
+      return null; // Not a callback
     }
 
-    // State doğrula
+    // Validate state
     const savedState = sessionStorage.getItem(`bypilot_state_${this.name}`);
     if (state !== savedState) {
       const result: AuthResult = {
@@ -175,7 +175,7 @@ export abstract class BaseProvider extends EventEmitter {
         this.emit('auth:error', result);
       }
 
-      // URL'den parametreleri temizle
+      // Clean URL parameters
       window.history.replaceState({}, document.title, window.location.pathname);
 
       return result;
@@ -190,28 +190,35 @@ export abstract class BaseProvider extends EventEmitter {
   }
 
   /**
-   * Mevcut token'ı getir
+   * Get current token object
    */
   getToken(): OAuthToken | null {
     return this.tokenManager.get();
   }
 
   /**
-   * Access token'ı getir
+   * Get authorization code
    */
-  getAccessToken(): string | null {
-    return this.tokenManager.get()?.accessToken ?? null;
+  getCode(): string | null {
+    return this.tokenManager.get()?.code ?? null;
   }
 
   /**
-   * Token geçerli mi?
+   * @deprecated Use getCode() instead
+   */
+  getAccessToken(): string | null {
+    return this.getCode();
+  }
+
+  /**
+   * Is token valid?
    */
   isAuthenticated(): boolean {
     return this.tokenManager.isValid();
   }
 
   /**
-   * Logout - token'ı temizle
+   * Logout - clear token
    */
   logout(): void {
     this.tokenManager.clear();
@@ -219,7 +226,7 @@ export abstract class BaseProvider extends EventEmitter {
   }
 
   /**
-   * Storage stratejisini değiştir
+   * Change storage strategy
    */
   setStorageStrategy(strategy: StorageStrategy): void {
     const currentToken = this.tokenManager.get();

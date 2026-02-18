@@ -1,14 +1,14 @@
 import type { PopupConfig } from './types';
 
 /**
- * OAuth popup yönetimi
+ * OAuth popup management
  */
 export class PopupManager {
   private popup: Window | null = null;
   private checkInterval: number | null = null;
 
   /**
-   * Popup aç ve URL'e yönlendir
+   * Open popup and navigate to URL
    */
   open(url: string, config: PopupConfig = {}): Window | null {
     const {
@@ -35,7 +35,7 @@ export class PopupManager {
   }
 
   /**
-   * Popup'ın kapanmasını bekle
+   * Wait for popup to close
    */
   waitForClose(): Promise<void> {
     return new Promise((resolve) => {
@@ -54,7 +54,7 @@ export class PopupManager {
   }
 
   /**
-   * Popup'tan callback al (postMessage ile)
+   * Wait for callback from popup (via postMessage)
    */
   waitForCallback<T>(origin: string, timeout = 300000): Promise<T> {
     return new Promise((resolve, reject) => {
@@ -80,7 +80,7 @@ export class PopupManager {
 
       window.addEventListener('message', messageHandler);
 
-      // Popup kapanma kontrolü
+      // Check if popup was closed
       this.checkInterval = window.setInterval(() => {
         if (!this.popup || this.popup.closed) {
           cleanup();
@@ -91,7 +91,7 @@ export class PopupManager {
   }
 
   /**
-   * Popup'ı kapat ve temizle
+   * Close popup and cleanup
    */
   close(): void {
     if (this.popup && !this.popup.closed) {
@@ -109,7 +109,7 @@ export class PopupManager {
   }
 
   /**
-   * Popup aktif mi?
+   * Is popup currently open?
    */
   isOpen(): boolean {
     return this.popup !== null && !this.popup.closed;

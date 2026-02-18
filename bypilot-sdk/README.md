@@ -1,16 +1,16 @@
 # ByPilot Business Signup SDK
 
-**[🇹🇷 Türkçe](README.tr.md) | 🇺🇸 English**
+**[Turkce](README.tr.md) | English**
 
 OAuth and Embedded Signup SDK for business accounts (WhatsApp, Instagram, Facebook, etc.)
 
-## 🚀 Installation
+## Installation
 
 ```bash
 npm install bypilot-business-signup-sdk
 ```
 
-## 📝 Quick Start
+## Quick Start
 
 ### WhatsApp Provider
 
@@ -23,8 +23,8 @@ const whatsapp = new WhatsAppProvider({
   configId: "your_embedded_signup_config_id",
   redirectUri: window.location.origin,
   storage: "localStorage", // or 'sessionStorage'
-  graphApiVersion: "v21.0", // optional
-  sdkVersion: "v21.0", // optional
+  graphApiVersion: "v24.0", // optional
+  sdkVersion: "v24.0", // optional
 });
 
 // Login with popup
@@ -32,35 +32,35 @@ try {
   const result = await whatsapp.loginWithPopup();
 
   if (result.success) {
-    console.log("Access Token:", result.token.accessToken);
-    console.log("Session Info:", result.sessionInfo);
+    console.log("Authorization Code:", result.token.code);
+    console.log("Session Info:", result.raw?.sessionInfo);
   }
 } catch (error) {
   console.error("Login failed:", error);
 }
 
-// Get current session
-const token = whatsapp.getAccessToken();
+// Get current authorization code
+const code = whatsapp.getCode();
 const isAuthenticated = whatsapp.isAuthenticated();
 
 // Logout
 whatsapp.logout();
 ```
 
-## 🔧 Configuration
+## Configuration
 
 ### WhatsApp Provider Options
 
 | Option            | Type                                   | Required | Description                                   |
 | ----------------- | -------------------------------------- | -------- | --------------------------------------------- |
-| `clientId`        | string                                 | ✅       | Your Meta App ID                              |
-| `configId`        | string                                 | ✅       | Embedded Signup Configuration ID              |
-| `redirectUri`     | string                                 | ✅       | Redirect URI (must be registered in Meta App) |
-| `storage`         | `'localStorage'` \| `'sessionStorage'` | ❌       | Token storage type (default: `localStorage`)  |
-| `graphApiVersion` | string                                 | ❌       | Graph API version (default: `v21.0`)          |
-| `sdkVersion`      | string                                 | ❌       | Facebook SDK version (default: `v21.0`)       |
+| `clientId`        | string                                 | Yes      | Your Meta App ID                              |
+| `configId`        | string                                 | Yes      | Embedded Signup Configuration ID              |
+| `redirectUri`     | string                                 | Yes      | Redirect URI (must be registered in Meta App) |
+| `storage`         | `'localStorage'` \| `'sessionStorage'` | No       | Token storage type (default: `localStorage`)  |
+| `graphApiVersion` | string                                 | No       | Graph API version (default: `v24.0`)          |
+| `sdkVersion`      | string                                 | No       | Facebook SDK version (default: `v24.0`)       |
 
-## 📚 API Reference
+## API Reference
 
 ### WhatsAppProvider
 
@@ -76,9 +76,9 @@ Opens a popup for WhatsApp Business authentication.
 
 Clears stored tokens and session data.
 
-##### `getAccessToken(): string | null`
+##### `getCode(): string | null`
 
-Returns the current access token or null if not authenticated.
+Returns the current authorization code or null if not authenticated.
 
 ##### `isAuthenticated(): boolean`
 
@@ -117,11 +117,12 @@ unsubscribe();
 interface AuthResult {
   success: boolean;
   token?: {
-    accessToken: string;
-    expiresIn?: number;
+    code: string;
+    tokenType: string;
+    scope?: string;
   };
-  sessionInfo?: WhatsAppSessionInfo;
   error?: string;
+  raw?: Record<string, unknown>;
 }
 ```
 
@@ -129,6 +130,7 @@ interface AuthResult {
 
 ```typescript
 interface WhatsAppSessionInfo {
+  code: string; // Authorization code (exchange on backend)
   wabaId?: string; // WhatsApp Business Account ID
   phoneNumberId?: string; // Phone Number ID
   phoneNumber?: string; // Phone Number
@@ -136,7 +138,7 @@ interface WhatsAppSessionInfo {
 }
 ```
 
-## 🏗️ Setup Guide
+## Setup Guide
 
 ### 1. Create Meta App
 
@@ -146,7 +148,7 @@ interface WhatsAppSessionInfo {
 
 ### 2. Configure Embedded Signup
 
-1. In your Meta app, go to WhatsApp → Configuration
+1. In your Meta app, go to WhatsApp > Configuration
 2. Set up Embedded Signup
 3. Add your domain to the allowlist
 4. Get your Configuration ID
@@ -168,7 +170,7 @@ const whatsapp = new WhatsAppProvider({
 });
 ```
 
-## 🔍 Error Handling
+## Error Handling
 
 ```typescript
 try {
@@ -182,17 +184,17 @@ try {
 }
 ```
 
-## 🎯 Browser Support
+## Browser Support
 
 - Chrome 80+
 - Firefox 74+
 - Safari 13.1+
 - Edge 80+
 
-## 📄 License
+## License
 
 MIT License - see [LICENSE](../LICENSE) for details.
 
-## 🤝 Contributing
+## Contributing
 
 See the main [repository README](../README.md) for contribution guidelines.

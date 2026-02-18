@@ -1,7 +1,7 @@
 /**
  * ByPilot SDK
  *
- * Business hesaplar için OAuth ve Embedded Signup yönetimi
+ * OAuth and Embedded Signup management for business accounts
  *
  * @packageDocumentation
  */

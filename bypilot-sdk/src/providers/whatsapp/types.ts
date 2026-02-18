@@ -1,7 +1,7 @@
 import type { ProviderConfig } from '../../core';
 
 /**
- * WhatsApp Embedded Signup konfigürasyonu
+ * WhatsApp Embedded Signup configuration
  */
 export interface WhatsAppConfig extends ProviderConfig {
   /**
@@ -10,18 +10,18 @@ export interface WhatsAppConfig extends ProviderConfig {
   clientId: string;
 
   /**
-   * Facebook App Secret (opsiyonel - backend token exchange için)
-   * DİKKAT: Frontend'de kullanılmamalı!
+   * Facebook App Secret (optional - for backend token exchange)
+   * WARNING: Do not use in frontend!
    */
   clientSecret?: string;
 
   /**
-   * Config ID - Meta Business Suite'den alınan Embedded Signup config
+   * Config ID - Embedded Signup config from Meta Business Suite
    */
   configId: string;
 
   /**
-   * Solution ID (opsiyonel)
+   * Solution ID (optional)
    */
   solutionId?: string;
 
@@ -43,37 +43,37 @@ export interface WhatsAppConfig extends ProviderConfig {
   redirectUri: string;
 
   /**
-   * İstenen izinler
+   * Requested permissions
    */
   scope?: string;
 
   /**
-   * Ek özellikler
+   * Extra options
    */
   extras?: WhatsAppExtras;
 }
 
 /**
- * WhatsApp Embedded Signup ek özellikleri
+ * WhatsApp Embedded Signup extra options
  */
 export interface WhatsAppExtras {
   /**
-   * Önceden doldurulmuş telefon numarası
+   * Pre-verified phone number
    */
   preverifiedPhone?: string;
 
   /**
-   * Önceden seçilmiş WABA ID
+   * Pre-selected WABA ID
    */
   wabaId?: string;
 
   /**
-   * Önceden seçilmiş Business ID
+   * Pre-selected Business ID
    */
   businessId?: string;
 
   /**
-   * Feature tipi
+   * Feature type
    */
   featureType?: 'whatsapp_embedded_signup' | 'whatsapp_coexistence_signup';
 
@@ -88,7 +88,7 @@ export interface WhatsAppExtras {
  */
 export interface WhatsAppAuthResponse {
   /**
-   * Access token (token-based flow)
+   * Access token (token-based flow, legacy)
    */
   accessToken?: string;
 
@@ -103,12 +103,12 @@ export interface WhatsAppAuthResponse {
   userID?: string;
 
   /**
-   * Token tipi
+   * Signed request
    */
   signedRequest?: string;
 
   /**
-   * Graphdomain
+   * Graph domain
    */
   graphDomain?: string;
 
@@ -124,7 +124,7 @@ export interface WhatsAppAuthResponse {
 }
 
 /**
- * WA_EMBEDDED_SIGNUP event'inin başarılı durumundaki data
+ * WA_EMBEDDED_SIGNUP success event data
  */
 export interface WhatsAppEmbeddedSignupSuccessData {
   phone_number_id: string;
@@ -136,7 +136,7 @@ export interface WhatsAppEmbeddedSignupSuccessData {
 }
 
 /**
- * WA_EMBEDDED_SIGNUP event'inin hata durumundaki data
+ * WA_EMBEDDED_SIGNUP error event data
  */
 export interface WhatsAppEmbeddedSignupErrorData {
   error_message: string;
@@ -146,16 +146,16 @@ export interface WhatsAppEmbeddedSignupErrorData {
 }
 
 /**
- * WA_EMBEDDED_SIGNUP başarılı event payload
+ * WA_EMBEDDED_SIGNUP success event payload
  */
 export interface WhatsAppEmbeddedSignupSuccessEvent {
   type: 'WA_EMBEDDED_SIGNUP';
-  event: string; // 'FINISH', 'SUBMIT' vs.
+  event: string; // 'FINISH', 'SUBMIT', etc.
   data: WhatsAppEmbeddedSignupSuccessData;
 }
 
 /**
- * WA_EMBEDDED_SIGNUP hata event payload
+ * WA_EMBEDDED_SIGNUP error event payload
  */
 export interface WhatsAppEmbeddedSignupErrorEvent {
   type: 'WA_EMBEDDED_SIGNUP';
@@ -164,7 +164,7 @@ export interface WhatsAppEmbeddedSignupErrorEvent {
 }
 
 /**
- * WA_EMBEDDED_SIGNUP bilinmeyen format (geriye uyumluluk)
+ * WA_EMBEDDED_SIGNUP unknown format (backwards compatibility)
  */
 export interface WhatsAppEmbeddedSignupUnknownEvent {
   type: 'WA_EMBEDDED_SIGNUP';
@@ -181,7 +181,7 @@ export type WhatsAppEmbeddedSignupEvent =
   | WhatsAppEmbeddedSignupUnknownEvent;
 
 /**
- * Type guard: Başarılı event mi kontrol et
+ * Type guard: Check if event is a successful signup
  */
 export function isEmbeddedSignupSuccess(
   event: WhatsAppEmbeddedSignupEvent
@@ -190,7 +190,7 @@ export function isEmbeddedSignupSuccess(
 }
 
 /**
- * Type guard: Hata event mi kontrol et
+ * Type guard: Check if event is an error
  */
 export function isEmbeddedSignupError(
   event: WhatsAppEmbeddedSignupEvent
@@ -199,13 +199,13 @@ export function isEmbeddedSignupError(
 }
 
 /**
- * Embedded Signup session info (normalize edilmiş)
+ * Embedded Signup session info (normalized)
  */
 export interface WhatsAppSessionInfo {
   /**
-   * Access token
+   * Authorization code (to be exchanged for access token on backend)
    */
-  accessToken: string;
+  code: string;
 
   /**
    * Phone number ID
@@ -248,12 +248,12 @@ export interface WhatsAppSessionInfo {
   datasetIds?: string[];
 
   /**
-   * Raw event data (tüm orijinal veri - uyuşmazlık kontrolü için)
+   * Raw event data (original data for debugging)
    */
   rawEvent?: WhatsAppEmbeddedSignupEvent;
 
   /**
-   * Hata bilgisi (eğer event CANCEL ise)
+   * Error info (if event is CANCEL)
    */
   error?: {
     message: string;

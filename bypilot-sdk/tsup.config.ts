@@ -3,7 +3,8 @@ import { defineConfig } from 'tsup';
 export default defineConfig({
   entry: {
     index: 'src/index.ts',
-    whatsapp: 'src/providers/whatsapp/index.ts'
+    whatsapp: 'src/providers/whatsapp/index.ts',
+    facebook: 'src/providers/facebook/index.ts'
   },
   format: ['cjs', 'esm'],
   dts: true,

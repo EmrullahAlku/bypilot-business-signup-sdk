@@ -12,8 +12,8 @@ import { isEmbeddedSignupSuccess, isEmbeddedSignupError } from './types';
 /**
  * WhatsApp Embedded Signup Provider
  *
- * Meta'nın WhatsApp Business Platform için Embedded Signup akışını yönetir.
- * Facebook SDK kullanarak OAuth 2.0 akışı gerçekleştirir.
+ * Manages the Embedded Signup flow for Meta's WhatsApp Business Platform.
+ * Uses Facebook SDK for OAuth 2.0 code-based flow.
  *
  * @example
  * ```typescript
@@ -28,7 +28,7 @@ import { isEmbeddedSignupSuccess, isEmbeddedSignupError } from './types';
  *   console.log('Authenticated!', result);
  * });
  *
- * // Login başlat
+ * // Start login
  * await whatsapp.loginWithPopup();
  * ```
  */
@@ -46,7 +46,7 @@ export class WhatsAppProvider extends BaseProvider {
   }
 
   /**
-   * Facebook SDK'yı yükle
+   * Load Facebook SDK
    */
   private async loadFacebookSDK(): Promise<void> {
     if (this.fbSDKLoaded && window.FB) {
@@ -58,7 +58,7 @@ export class WhatsAppProvider extends BaseProvider {
     }
 
     this.fbSDKLoadPromise = new Promise((resolve, reject) => {
-      // Zaten yüklü mü kontrol et
+      // Check if already loaded
       if (window.FB) {
         this.fbSDKLoaded = true;
         this.initFacebookSDK();
@@ -66,7 +66,7 @@ export class WhatsAppProvider extends BaseProvider {
         return;
       }
 
-      // SDK script'ini ekle
+      // Add SDK script
       const script = document.createElement('script');
       script.id = 'facebook-jssdk';
       script.src = `https://connect.facebook.net/en_US/sdk.js`;
@@ -83,7 +83,7 @@ export class WhatsAppProvider extends BaseProvider {
         reject(new Error('Failed to load Facebook SDK'));
       };
 
-      // Mevcut script varsa kaldır
+      // Remove existing script if present
       const existingScript = document.getElementById('facebook-jssdk');
       if (existingScript) {
         existingScript.remove();
@@ -103,7 +103,7 @@ export class WhatsAppProvider extends BaseProvider {
   }
 
   /**
-   * Facebook SDK'yı başlat
+   * Initialize Facebook SDK
    */
   private initFacebookSDK(): void {
     if (!window.FB) return;
@@ -117,7 +117,7 @@ export class WhatsAppProvider extends BaseProvider {
   }
 
   /**
-   * Authorization URL oluştur (redirect flow için)
+   * Build authorization URL (for redirect flow)
    */
   protected buildAuthorizationUrl(state: string): string {
     const params = new URLSearchParams({
@@ -133,7 +133,7 @@ export class WhatsAppProvider extends BaseProvider {
   }
 
   /**
-   * Callback'i işle
+   * Handle callback
    */
   protected async handleCallback(callbackData: Record<string, unknown>): Promise<AuthResult> {
     const code = callbackData.code as string | undefined;
@@ -155,23 +155,23 @@ export class WhatsAppProvider extends BaseProvider {
       };
     }
 
-    // Not: Token exchange backend'de yapılmalı (client secret gerekli)
-    // Frontend'de sadece code döndürüyoruz
+    // Note: Token exchange must happen on backend (client secret required)
+    // Frontend only returns the code
     return {
       success: true,
       raw: { code },
       token: {
-        accessToken: code, // Bu aslında code, backend'de token'a çevrilmeli
+        code,
         tokenType: 'authorization_code'
       }
     };
   }
 
   /**
-   * WhatsApp Embedded Signup popup ile başlat
+   * Start WhatsApp Embedded Signup via popup
    *
-   * Facebook SDK kullanarak native popup deneyimi sağlar.
-   * Session info message event'i ile WABA ID, Phone Number ID ve access token alır.
+   * Uses Facebook SDK for native popup experience.
+   * Receives session info (WABA ID, Phone Number ID) and authorization code via message events.
    */
   override async loginWithPopup(_popupConfig?: PopupConfig): Promise<AuthResult> {
     this.emit('auth:start');
@@ -183,12 +183,12 @@ export class WhatsAppProvider extends BaseProvider {
         throw new Error('Facebook SDK not available');
       }
 
-      // Session info'yu dinle (popup'tan önce başlat)
+      // Start listening for session info (before popup opens)
       const sessionInfoPromise = this.waitForSessionInfo();
 
       const response = await this.launchEmbeddedSignup();
 
-      // Kullanıcı yetkilendirmeyi reddetti
+      // User denied authorization
       if (response.status === 'not_authorized') {
         this.emit('auth:cancel');
         return {
@@ -198,10 +198,10 @@ export class WhatsAppProvider extends BaseProvider {
         };
       }
 
-      // Code-based flow: authResponse.code veya session info'dan token al
+      // Code-based flow: get code from authResponse or session info
       const authResponse = response.authResponse;
 
-      // Session info'yu bekle (5 saniye timeout)
+      // Wait for session info (5 second timeout)
       let sessionInfo: WhatsAppSessionInfo | null = null;
       try {
         sessionInfo = await Promise.race([
@@ -209,37 +209,37 @@ export class WhatsAppProvider extends BaseProvider {
           new Promise<null>((resolve) => setTimeout(() => resolve(null), 5000))
         ]);
       } catch {
-        // Session info alınamadı, devam et
+        // Session info not available, continue
       }
 
-      // Token oluştur: session info'dan veya authResponse'dan
+      // Build token: from session info or authResponse
       let token: OAuthToken;
 
-      if (sessionInfo?.accessToken) {
-        // Session info'dan access token al (tercih edilen yöntem)
+      if (sessionInfo?.code) {
+        // Get code from session info (preferred method)
         token = {
-          accessToken: sessionInfo.accessToken,
-          tokenType: 'bearer',
+          code: sessionInfo.code,
+          tokenType: 'authorization_code',
           scope: this.whatsappConfig.scope
         };
 
-        // Session info'yu kaydet
+        // Save session info
         this.lastSessionInfo = sessionInfo;
       } else if (authResponse?.code) {
-        // Authorization code döndü (backend'de token'a çevrilmeli)
+        // Authorization code returned (backend must exchange for token)
         token = {
-          accessToken: authResponse.code,
+          code: authResponse.code,
           tokenType: 'authorization_code'
         };
       } else if (authResponse?.accessToken) {
-        // Doğrudan access token döndü
+        // Direct access token returned (legacy flow)
         token = this.buildToken(authResponse);
       } else {
-        // Hiçbir token/code alınamadı
+        // No code received
         return {
           success: false,
-          error: 'no_token',
-          errorDescription: 'No access token or authorization code received'
+          error: 'no_code',
+          errorDescription: 'No authorization code received'
         };
       }
 
@@ -274,7 +274,7 @@ export class WhatsAppProvider extends BaseProvider {
   }
 
   /**
-   * Session info için message event bekle
+   * Wait for session info via message event
    */
   private waitForSessionInfo(): Promise<WhatsAppSessionInfo> {
     return new Promise((resolve) => {
@@ -307,17 +307,17 @@ export class WhatsAppProvider extends BaseProvider {
   }
 
   /**
-   * Embedded Signup event'ini parse et ve WhatsAppSessionInfo'ya dönüştür
+   * Parse Embedded Signup event into WhatsAppSessionInfo
    */
   private parseEmbeddedSignupEvent(event: WhatsAppEmbeddedSignupEvent): WhatsAppSessionInfo {
-    // Raw event'i her zaman sakla
+    // Always store raw event
     const sessionInfo: WhatsAppSessionInfo = {
-      accessToken: '',
+      code: '',
       rawEvent: event
     };
 
     if (isEmbeddedSignupSuccess(event)) {
-      // Başarılı event
+      // Successful event
       sessionInfo.phoneNumberId = event.data.phone_number_id;
       sessionInfo.wabaId = event.data.waba_id;
       sessionInfo.businessId = event.data.business_id;
@@ -325,7 +325,7 @@ export class WhatsAppProvider extends BaseProvider {
       sessionInfo.pageIds = event.data.page_ids;
       sessionInfo.datasetIds = event.data.dataset_ids;
     } else if (isEmbeddedSignupError(event)) {
-      // Hata event
+      // Error event
       sessionInfo.error = {
         message: event.data.error_message,
         errorId: event.data.error_id,
@@ -333,7 +333,7 @@ export class WhatsAppProvider extends BaseProvider {
         timestamp: event.data.timestamp
       };
     } else {
-      // Bilinmeyen format - raw data'dan çıkarım yap (geriye uyumluluk)
+      // Unknown format - extract from raw data (backwards compatibility)
       const rawData = event.data as Record<string, unknown>;
       sessionInfo.phoneNumberId = rawData.phone_number_id as string | undefined;
       sessionInfo.wabaId = rawData.waba_id as string | undefined;
@@ -345,19 +345,19 @@ export class WhatsAppProvider extends BaseProvider {
   }
 
   /**
-   * Son alınan session info
+   * Last received session info
    */
   private lastSessionInfo: WhatsAppSessionInfo | null = null;
 
   /**
-   * Son session info'yu al
+   * Get last session info
    */
   getLastSessionInfo(): WhatsAppSessionInfo | null {
     return this.lastSessionInfo;
   }
 
   /**
-   * Embedded Signup akışını başlat
+   * Launch Embedded Signup flow
    */
   private launchEmbeddedSignup(): Promise<FBLoginResponse> {
     return new Promise((resolve) => {
@@ -367,7 +367,7 @@ export class WhatsAppProvider extends BaseProvider {
         sessionInfoVersion: this.whatsappConfig.extras?.sessionInfoVersion ?? 3
       };
 
-      // Solution ID varsa ekle
+      // Add Solution ID if provided
       if (this.whatsappConfig.solutionId) {
         extras.solutionID = this.whatsappConfig.solutionId;
       }
@@ -385,11 +385,11 @@ export class WhatsAppProvider extends BaseProvider {
   }
 
   /**
-   * Auth response'dan token oluştur
+   * Build token from auth response (legacy flow)
    */
   private buildToken(authResponse: WhatsAppAuthResponse): OAuthToken {
     return {
-      accessToken: authResponse.accessToken ?? '',
+      code: authResponse.accessToken ?? '',
       tokenType: 'bearer',
       expiresAt: authResponse.expiresIn
         ? Date.now() + authResponse.expiresIn * 1000
@@ -399,10 +399,10 @@ export class WhatsAppProvider extends BaseProvider {
   }
 
   /**
-   * Session info al (Embedded Signup sonrası)
+   * Listen for session info (after Embedded Signup)
    *
-   * Facebook SDK message event'i ile session bilgilerini alır.
-   * Type-safe parsing ile başarılı ve hata durumlarını ayırır.
+   * Receives session info via Facebook SDK message events.
+   * Type-safe parsing separates success and error states.
    */
   getSessionInfoListener(callback: (info: WhatsAppSessionInfo) => void): () => void {
     const handler = (event: MessageEvent) => {
@@ -433,7 +433,7 @@ export class WhatsAppProvider extends BaseProvider {
   }
 
   /**
-   * Login durumunu kontrol et
+   * Check login status
    */
   async checkLoginStatus(): Promise<FBLoginResponse | null> {
     try {
@@ -452,7 +452,7 @@ export class WhatsAppProvider extends BaseProvider {
   }
 
   /**
-   * Facebook'tan logout
+   * Logout from Facebook
    */
   override logout(): void {
     super.logout();
@@ -467,11 +467,11 @@ export class WhatsAppProvider extends BaseProvider {
   }
 
   /**
-   * Graph API çağrısı yap (Facebook SDK kullanarak)
+   * Make a Graph API call (via Facebook SDK)
    *
-   * @param path - API endpoint (örn: 'me' veya 'v24.0/me')
+   * @param path - API endpoint (e.g., 'me' or 'v24.0/me')
    * @param method - HTTP method
-   * @param params - Query/body parametreleri
+   * @param params - Query/body parameters
    */
   async graphAPI<T = unknown>(
     path: string,
@@ -484,19 +484,19 @@ export class WhatsAppProvider extends BaseProvider {
       throw new Error('Facebook SDK not available');
     }
 
-    // Path'e version ekle (eğer yoksa)
+    // Add version to path if not present
     const version = this.whatsappConfig.graphApiVersion ?? 'v24.0';
     const versionedPath = path.startsWith('v') || path.startsWith('/v')
       ? path
       : `${version}/${path}`;
 
     return new Promise((resolve, reject) => {
-      const accessToken = this.getAccessToken();
+      const code = this.getCode();
 
       window.FB!.api(
         versionedPath,
         method,
-        { ...params, access_token: accessToken },
+        { ...params, access_token: code },
         (response: unknown) => {
           const resp = response as Record<string, unknown>;
           if (resp.error) {
@@ -510,9 +510,9 @@ export class WhatsAppProvider extends BaseProvider {
   }
 
   /**
-   * WhatsApp Cloud API'ye doğrudan HTTP çağrısı yap
+   * Make a direct HTTP call to WhatsApp Cloud API
    *
-   * @param endpoint - API endpoint (örn: '123456/messages')
+   * @param endpoint - API endpoint (e.g., '123456/messages')
    * @param method - HTTP method
    * @param body - Request body
    */
@@ -521,7 +521,7 @@ export class WhatsAppProvider extends BaseProvider {
     method: 'GET' | 'POST' | 'DELETE' = 'GET',
     body?: Record<string, unknown>
   ): Promise<T> {
-    const accessToken = this.getAccessToken();
+    const code = this.getCode();
     const version = this.whatsappConfig.graphApiVersion ?? 'v24.0';
 
     const url = `https://graph.facebook.com/${version}/${endpoint}`;
@@ -529,7 +529,7 @@ export class WhatsAppProvider extends BaseProvider {
     const options: RequestInit = {
       method,
       headers: {
-        'Authorization': `Bearer ${accessToken}`,
+        'Authorization': `Bearer ${code}`,
         'Content-Type': 'application/json'
       }
     };
@@ -549,7 +549,7 @@ export class WhatsAppProvider extends BaseProvider {
   }
 
   /**
-   * Graph API version'unu al
+   * Get Graph API version
    */
   getGraphApiVersion(): string {
     return this.whatsappConfig.graphApiVersion ?? 'v24.0';
