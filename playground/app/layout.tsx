@@ -1,8 +1,9 @@
 import type { Metadata } from "next";
+import NavAside from "./components/NavAside";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "ByPilot SDK Test",
+  title: "ByPilot SDK Playground",
   description: "Business Signup SDK Test Environment",
 };
 
@@ -13,7 +14,12 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
-      <body>{children}</body>
+      <body>
+        <div className="app-shell">
+          <NavAside />
+          <main className="main-content">{children}</main>
+        </div>
+      </body>
     </html>
   );
 }
