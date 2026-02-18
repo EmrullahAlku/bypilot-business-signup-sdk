@@ -13,40 +13,51 @@ import {
 
 type TabType = "whatsapp" | "facebook";
 
+interface ExchangeResult {
+  access_token: string;
+  token_type: string;
+  expires_in: number;
+  user?: { id: string; name: string; email: string } | null;
+}
+
 export default function SdkPlayground() {
   const whatsapp = useMemo(
     () =>
       new WhatsAppProvider({
         clientId: process.env.NEXT_PUBLIC_META_APP_ID || "",
         configId: process.env.NEXT_PUBLIC_WA_CONFIG_ID || "",
-        redirectUri: typeof window !== "undefined" ? window.location.origin : "",
+        redirectUri:
+          typeof window !== "undefined" ? window.location.origin : "",
         storage: "localStorage",
         graphApiVersion: "v24.0",
         sdkVersion: "v24.0",
       }),
-    []
+    [],
   );
 
   const facebook = useMemo(
     () =>
       new FacebookProvider({
         clientId: process.env.NEXT_PUBLIC_META_APP_ID || "",
-        redirectUri: typeof window !== "undefined" ? window.location.origin : "",
+        redirectUri:
+          typeof window !== "undefined" ? window.location.origin : "",
         storage: "localStorage",
-        scope:
-          process.env.NEXT_PUBLIC_FB_SCOPE ||
-          "public_profile,email,pages_show_list",
+        configId: process.env.NEXT_PUBLIC_META_CONFIG_ID || "",
         graphApiVersion: "v24.0",
         sdkVersion: "v24.0",
+        responseType: "code",
       }),
-    []
+    [],
   );
 
   const [activeTab, setActiveTab] = useState<TabType>("whatsapp");
 
   // WhatsApp state
   const [waAuthenticated, setWaAuthenticated] = useState(false);
+  const [waCode, setWaCode] = useState<string | null>(null);
   const [waAccessToken, setWaAccessToken] = useState<string | null>(null);
+  const [waExchangeResult, setWaExchangeResult] =
+    useState<ExchangeResult | null>(null);
   const [waLoading, setWaLoading] = useState(false);
   const [waError, setWaError] = useState<string | null>(null);
   const [waSessionInfo, setWaSessionInfo] =
@@ -54,7 +65,10 @@ export default function SdkPlayground() {
 
   // Facebook state
   const [fbAuthenticated, setFbAuthenticated] = useState(false);
+  const [fbCode, setFbCode] = useState<string | null>(null);
   const [fbAccessToken, setFbAccessToken] = useState<string | null>(null);
+  const [fbExchangeResult, setFbExchangeResult] =
+    useState<ExchangeResult | null>(null);
   const [fbLoading, setFbLoading] = useState(false);
   const [fbError, setFbError] = useState<string | null>(null);
   const [fbSessionInfo, setFbSessionInfo] =
@@ -80,7 +94,7 @@ export default function SdkPlayground() {
     const unsubSuccess = whatsapp.on("auth:success", (result: unknown) => {
       const authResult = result as AuthResult;
       addLog(
-        `[WA] Auth successful: ${authResult.token?.code?.substring(0, 20)}...`
+        `[WA] Auth successful: ${authResult.token?.code?.substring(0, 20)}...`,
       );
     });
 
@@ -101,18 +115,18 @@ export default function SdkPlayground() {
       if (info.rawEvent) {
         if (isEmbeddedSignupSuccess(info.rawEvent)) {
           addLog(
-            `[WA] Session info: WABA=${info.wabaId}, Phone=${info.phoneNumberId}, Event=${info.rawEvent.event}`
+            `[WA] Session info: WABA=${info.wabaId}, Phone=${info.phoneNumberId}, Event=${info.rawEvent.event}`,
           );
         } else if (isEmbeddedSignupError(info.rawEvent)) {
           addLog(
-            `[WA] Embedded Signup error: ${info.error?.message} (ID: ${info.error?.errorId})`
+            `[WA] Embedded Signup error: ${info.error?.message} (ID: ${info.error?.errorId})`,
           );
         } else {
           addLog("[WA] Unknown event format - raw data available");
         }
       } else {
         addLog(
-          `[WA] Session info: WABA=${info.wabaId}, Phone=${info.phoneNumberId}`
+          `[WA] Session info: WABA=${info.wabaId}, Phone=${info.phoneNumberId}`,
         );
       }
       setWaSessionInfo(info);
@@ -139,7 +153,7 @@ export default function SdkPlayground() {
     const unsubSuccess = facebook.on("auth:success", (result: unknown) => {
       const authResult = result as AuthResult;
       addLog(
-        `[FB] Auth successful: ${authResult.token?.code?.substring(0, 20)}...`
+        `[FB] Auth successful: ${authResult.token?.code?.substring(0, 20)}...`,
       );
     });
 
@@ -164,7 +178,7 @@ export default function SdkPlayground() {
     };
   }, [facebook, addLog]);
 
-  // WhatsApp login — FB.login() handles popup natively, no redirect needed
+  // WhatsApp login: popup → code → server-side exchange → access token
   const handleWaLogin = async () => {
     setWaLoading(true);
     setWaError(null);
@@ -174,9 +188,33 @@ export default function SdkPlayground() {
       const result = await whatsapp.loginWithPopup();
 
       if (result.success && result.token) {
-        setWaAccessToken(result.token.code);
+        const code = result.token.code;
+        setWaCode(code);
         setWaAuthenticated(true);
-        addLog("[WA] Login successful!");
+        addLog(`[WA] Code received: ${code.substring(0, 20)}...`);
+
+        // Exchange code for access token via server
+        addLog("[WA] Exchanging code for access token...");
+        const res = await fetch("/api/connect/whatsapp", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ code }),
+        });
+
+        const data = await res.json();
+
+        if (!res.ok || data.error) {
+          setWaError(data.error || "Token exchange failed");
+          addLog(`[WA] Exchange failed: ${data.error}`);
+          return;
+        }
+
+        setWaAccessToken(data.access_token);
+        setWaExchangeResult(data);
+        addLog(
+          `[WA] Access token received: ${data.access_token.substring(0, 20)}...`,
+        );
+        addLog(`[WA] Expires in: ${data.expires_in}s`);
       } else {
         setWaError(result.error || "Login failed");
         addLog(`[WA] Login failed: ${result.error}`);
@@ -192,13 +230,15 @@ export default function SdkPlayground() {
 
   const handleWaLogout = () => {
     whatsapp.logout();
+    setWaCode(null);
     setWaAccessToken(null);
+    setWaExchangeResult(null);
     setWaAuthenticated(false);
     setWaSessionInfo(null);
     addLog("[WA] Logged out");
   };
 
-  // Facebook login
+  // Facebook login: popup → code → server-side exchange → access token + user info
   const handleFbLogin = async () => {
     setFbLoading(true);
     setFbError(null);
@@ -208,9 +248,35 @@ export default function SdkPlayground() {
       const result = await facebook.loginWithPopup();
 
       if (result.success && result.token) {
-        setFbAccessToken(result.token.code);
+        const code = result.token.code;
+        setFbCode(code);
         setFbAuthenticated(true);
-        addLog("[FB] Login successful!");
+        addLog(`[FB] Code received: ${code.substring(0, 20)}...`);
+
+        // Exchange code for access token via server
+        addLog("[FB] Exchanging code for access token...");
+        const res = await fetch("/api/connect/facebook", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ code }),
+        });
+
+        const data = await res.json();
+
+        if (!res.ok || data.error) {
+          setFbError(data.error || "Token exchange failed");
+          addLog(`[FB] Exchange failed: ${data.error}`);
+          return;
+        }
+
+        setFbAccessToken(data.access_token);
+        setFbExchangeResult(data);
+        addLog(
+          `[FB] Access token received: ${data.access_token.substring(0, 20)}...`,
+        );
+        if (data.user) {
+          addLog(`[FB] User: ${data.user.name} (${data.user.email})`);
+        }
       } else {
         setFbError(result.error || "Login failed");
         addLog(`[FB] Login failed: ${result.error}`);
@@ -226,7 +292,9 @@ export default function SdkPlayground() {
 
   const handleFbLogout = () => {
     facebook.logout();
+    setFbCode(null);
     setFbAccessToken(null);
+    setFbExchangeResult(null);
     setFbAuthenticated(false);
     setFbSessionInfo(null);
     addLog("[FB] Logged out");
@@ -287,10 +355,35 @@ export default function SdkPlayground() {
             {waError && <div className="error">{waError}</div>}
           </div>
 
-          {waAccessToken && (
+          {waCode && (
+            <div className="card">
+              <h2>Authorization Code</h2>
+              <code className="token">{waCode}</code>
+            </div>
+          )}
+
+          {waExchangeResult && (
             <div className="card">
               <h2>Access Token</h2>
-              <code className="token access-token">{waAccessToken}</code>
+              <code className="token access-token">
+                {waExchangeResult.access_token}
+              </code>
+              <table>
+                <tbody>
+                  <tr>
+                    <td>Token Type:</td>
+                    <td>
+                      <code>{waExchangeResult.token_type}</code>
+                    </td>
+                  </tr>
+                  <tr>
+                    <td>Expires In:</td>
+                    <td>
+                      <code>{waExchangeResult.expires_in}s</code>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
             </div>
           )}
 
@@ -361,9 +454,7 @@ export default function SdkPlayground() {
                         <tr>
                           <td>Ad Account IDs:</td>
                           <td>
-                            <code>
-                              {waSessionInfo.adAccountIds.join(", ")}
-                            </code>
+                            <code>{waSessionInfo.adAccountIds.join(", ")}</code>
                           </td>
                         </tr>
                       )}
@@ -454,10 +545,57 @@ export default function SdkPlayground() {
             {fbError && <div className="error">{fbError}</div>}
           </div>
 
-          {fbAccessToken && (
+          {fbCode && (
+            <div className="card">
+              <h2>Authorization Code</h2>
+              <code className="token">{fbCode}</code>
+            </div>
+          )}
+
+          {fbExchangeResult && (
             <div className="card">
               <h2>Access Token</h2>
-              <code className="token access-token">{fbAccessToken}</code>
+              <code className="token access-token">
+                {fbExchangeResult.access_token}
+              </code>
+              <table>
+                <tbody>
+                  <tr>
+                    <td>Token Type:</td>
+                    <td>
+                      <code>{fbExchangeResult.token_type}</code>
+                    </td>
+                  </tr>
+                  <tr>
+                    <td>Expires In:</td>
+                    <td>
+                      <code>{fbExchangeResult.expires_in}s</code>
+                    </td>
+                  </tr>
+                  {fbExchangeResult.user && (
+                    <>
+                      <tr>
+                        <td>User ID:</td>
+                        <td>
+                          <code>{fbExchangeResult.user.id}</code>
+                        </td>
+                      </tr>
+                      <tr>
+                        <td>Name:</td>
+                        <td>
+                          <code>{fbExchangeResult.user.name}</code>
+                        </td>
+                      </tr>
+                      <tr>
+                        <td>Email:</td>
+                        <td>
+                          <code>{fbExchangeResult.user.email}</code>
+                        </td>
+                      </tr>
+                    </>
+                  )}
+                </tbody>
+              </table>
             </div>
           )}
 
