@@ -39,13 +39,17 @@ export default function SdkPlayground() {
     () =>
       new FacebookProvider({
         clientId: process.env.NEXT_PUBLIC_META_APP_ID || "",
+        // redirect_uri: FB.login() sonrası Facebook popup'ı buraya yönlendirir.
+        // GET /api/connect/facebook handler code'u alıp exchange yapar.
         redirectUri:
-          typeof window !== "undefined" ? window.location.origin : "",
+          typeof window !== "undefined"
+            ? `${window.location.origin}/api/connect/facebook`
+            : "",
         storage: "localStorage",
         configId: process.env.NEXT_PUBLIC_META_CONFIG_ID || "",
+        scope: process.env.NEXT_PUBLIC_FB_SCOPE || "public_profile,email,pages_show_list",
         graphApiVersion: "v24.0",
         sdkVersion: "v24.0",
-        responseType: "code",
       }),
     [],
   );
@@ -238,56 +242,106 @@ export default function SdkPlayground() {
     addLog("[WA] Logged out");
   };
 
-  // Facebook login: popup → code → server-side exchange → access token + user info
-  const handleFbLogin = async () => {
+  // Facebook login:
+  // FB.login() (config_id + response_type:code) popup'ı /api/connect/facebook'a yönlendirir.
+  // GET route server-side exchange yapar → /connect/facebook'a redirect eder.
+  // /connect/facebook sayfası postMessage ile token'ı gönderir → popup kapanır.
+  const handleFbLogin = () => {
     setFbLoading(true);
     setFbError(null);
 
-    try {
-      addLog("[FB] Opening login popup...");
-      const result = await facebook.loginWithPopup();
+    let settled = false;
+    const settle = () => {
+      if (settled) return;
+      settled = true;
+      window.removeEventListener("message", messageHandler);
+      clearInterval(pollInterval);
+      setFbLoading(false);
+    };
 
-      if (result.success && result.token) {
+    // postMessage dinleyicisi — /connect/facebook callback sayfasından gelir
+    const messageHandler = (event: MessageEvent) => {
+      if (event.origin !== window.location.origin) return;
+      if (event.data?.type !== "fb_oauth_callback") return;
+
+      const { access_token, token_type, expires_in, user, error } =
+        event.data.payload as {
+          access_token?: string;
+          token_type?: string;
+          expires_in?: number;
+          user?: { id: string; name: string; email: string } | null;
+          error?: string;
+        };
+
+      if (error) {
+        setFbError(error);
+        addLog(`[FB] Login failed: ${error}`);
+      } else if (access_token) {
+        setFbAccessToken(access_token);
+        setFbExchangeResult({
+          access_token,
+          token_type: token_type || "bearer",
+          expires_in: expires_in || 0,
+          user: user ?? null,
+        });
+        setFbAuthenticated(true);
+        addLog(`[FB] Access token received: ${access_token.substring(0, 20)}...`);
+        if (user?.name) addLog(`[FB] User: ${user.name} (${user.email})`);
+      }
+
+      settle();
+    };
+
+    window.addEventListener("message", messageHandler);
+
+    // Popup'ı FB.login() ile aç — FacebookProvider.loginWithPopup() FB SDK'yı tetikler
+    addLog("[FB] Opening login popup...");
+    facebook.loginWithPopup().then((result) => {
+      // FB.login() doğrudan kod döndürdüyse (redirect olmayan durumlar) — fallback
+      if (result.success && result.token?.code && !settled) {
         const code = result.token.code;
         setFbCode(code);
-        setFbAuthenticated(true);
-        addLog(`[FB] Code received: ${code.substring(0, 20)}...`);
-
-        // Exchange code for access token via server
+        addLog(`[FB] Code received directly: ${code.substring(0, 20)}...`);
         addLog("[FB] Exchanging code for access token...");
-        const res = await fetch("/api/connect/facebook", {
+
+        fetch("/api/connect/facebook", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ code }),
-        });
-
-        const data = await res.json();
-
-        if (!res.ok || data.error) {
-          setFbError(data.error || "Token exchange failed");
-          addLog(`[FB] Exchange failed: ${data.error}`);
-          return;
+        })
+          .then((res) => res.json())
+          .then((data) => {
+            if (data.error) {
+              setFbError(data.error);
+              addLog(`[FB] Exchange failed: ${data.error}`);
+            } else {
+              setFbAccessToken(data.access_token);
+              setFbExchangeResult(data);
+              setFbAuthenticated(true);
+              addLog(`[FB] Access token received: ${data.access_token.substring(0, 20)}...`);
+              if (data.user?.name) addLog(`[FB] User: ${data.user.name}`);
+            }
+            settle();
+          })
+          .catch((err) => {
+            setFbError(err.message || "Exchange failed");
+            settle();
+          });
+      } else if (!result.success && !settled) {
+        // Redirect flow'da popup kapanır, error "closed by user" gelir — normal, postMessage bekleniyor
+        if (!result.error?.includes("closed")) {
+          setFbError(result.error || "Login failed");
+          addLog(`[FB] Login failed: ${result.error}`);
+          settle();
         }
-
-        setFbAccessToken(data.access_token);
-        setFbExchangeResult(data);
-        addLog(
-          `[FB] Access token received: ${data.access_token.substring(0, 20)}...`,
-        );
-        if (data.user) {
-          addLog(`[FB] User: ${data.user.name} (${data.user.email})`);
-        }
-      } else {
-        setFbError(result.error || "Login failed");
-        addLog(`[FB] Login failed: ${result.error}`);
+        // "closed by user" ise postMessage zaten gönderilmiştir, settle orada çağrılır
       }
-    } catch (err) {
-      const message = err instanceof Error ? err.message : "Unknown error";
-      setFbError(message);
-      addLog(`[FB] Error: ${message}`);
-    } finally {
-      setFbLoading(false);
-    }
+    });
+
+    // Popup kapanmayı 5 dk sonra timeout'la
+    const pollInterval = setInterval(() => {
+      if (settled) clearInterval(pollInterval);
+    }, 500);
   };
 
   const handleFbLogout = () => {
