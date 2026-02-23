@@ -7,6 +7,7 @@ const links = [
   { href: "/", label: "Overview", icon: "⊞" },
   { href: "/whatsapp", label: "WhatsApp", icon: "●", color: "#25D366" },
   { href: "/facebook", label: "Facebook", icon: "●", color: "#1877F2" },
+  { href: "/instagram", label: "Instagram", icon: "●", color: "#E1306C" },
 ];
 
 export default function NavAside() {

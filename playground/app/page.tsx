@@ -21,6 +21,16 @@ const providers = [
     bg: "#1a1e2e",
     border: "#2d3a5a",
   },
+  {
+    href: "/instagram",
+    name: "Instagram Business",
+    description:
+      "Business Login via Instagram OAuth 2.0. Short-lived code exchanged server-side for a long-lived token (60 days).",
+    badge: "Business Login",
+    color: "#E1306C",
+    bg: "#2e1a20",
+    border: "#5a2d3a",
+  },
 ];
 
 export default function IndexPage() {
@@ -53,11 +63,14 @@ export default function IndexPage() {
         <table>
           <tbody>
             {[
-              ["NEXT_PUBLIC_META_APP_ID", "Meta App ID (required)"],
+              ["NEXT_PUBLIC_META_APP_ID", "Meta App ID — WhatsApp & Facebook (required)"],
               ["META_APP_SECRET", "Meta App Secret — server only (required)"],
               ["NEXT_PUBLIC_WA_CONFIG_ID", "WhatsApp Embedded Signup config_id"],
               ["NEXT_PUBLIC_META_CONFIG_ID", "Facebook Login config_id"],
               ["NEXT_PUBLIC_FB_SCOPE", "Facebook permission scopes"],
+              ["NEXT_PUBLIC_IG_APP_ID", "Instagram App ID — from Business login settings"],
+              ["IG_APP_SECRET", "Instagram App Secret — server only (required)"],
+              ["NEXT_PUBLIC_IG_SCOPE", "Instagram permission scopes (optional)"],
             ].map(([key, desc]) => (
               <tr key={key}>
                 <td><code>{key}</code></td>

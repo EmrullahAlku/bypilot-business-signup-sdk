@@ -21,7 +21,7 @@ export default function WhatsAppPage() {
       new WhatsAppProvider({
         clientId: process.env.NEXT_PUBLIC_META_APP_ID || "",
         configId: process.env.NEXT_PUBLIC_WA_CONFIG_ID || "",
-        redirectUri: typeof window !== "undefined" ? window.location.origin : "",
+        redirectUri: process.env.NEXT_PUBLIC_BASE_URL || (typeof window !== "undefined" ? window.location.origin : ""),
         storage: "localStorage",
         graphApiVersion: "v24.0",
         sdkVersion: "v24.0",
@@ -241,7 +241,7 @@ export default function WhatsAppPage() {
           <li>Configure Embedded Signup and get <code>config_id</code></li>
           <li>Set <code>NEXT_PUBLIC_META_APP_ID</code>, <code>META_APP_SECRET</code>, <code>NEXT_PUBLIC_WA_CONFIG_ID</code></li>
           <li>
-            Add <code>{typeof window !== "undefined" ? window.location.origin : "http://localhost:3000"}</code> as Redirect URI
+            Add <code>{process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:3000"}</code> as Redirect URI
           </li>
         </ol>
       </div>

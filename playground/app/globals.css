@@ -167,6 +167,15 @@ h2 {
   background: #444;
 }
 
+.btn.instagram {
+  background: linear-gradient(45deg, #f09433, #e6683c, #dc2743, #cc2366, #bc1888);
+  color: #fff;
+}
+
+.btn.instagram:hover:not(:disabled) {
+  opacity: 0.88;
+}
+
 .btn.small {
   padding: 0.35rem 0.75rem;
   font-size: 0.8rem;

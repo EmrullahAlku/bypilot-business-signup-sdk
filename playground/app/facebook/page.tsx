@@ -19,10 +19,7 @@ export default function FacebookPage() {
     () =>
       new FacebookProvider({
         clientId: process.env.NEXT_PUBLIC_META_APP_ID || "",
-        redirectUri:
-          typeof window !== "undefined"
-            ? `${window.location.origin}/api/connect/facebook`
-            : "",
+        redirectUri: `${process.env.NEXT_PUBLIC_BASE_URL || (typeof window !== "undefined" ? window.location.origin : "http://localhost:3000")}/api/connect/facebook`,
         storage: "localStorage",
         configId: process.env.NEXT_PUBLIC_META_CONFIG_ID || "",
         scope:
@@ -259,9 +256,7 @@ export default function FacebookPage() {
           <li>Optionally set <code>NEXT_PUBLIC_META_CONFIG_ID</code> and <code>NEXT_PUBLIC_FB_SCOPE</code></li>
           <li>
             Add <code>
-              {typeof window !== "undefined"
-                ? `${window.location.origin}/api/connect/facebook`
-                : "http://localhost:3000/api/connect/facebook"}
+              {`${process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:3000"}/api/connect/facebook`}
             </code> as Valid OAuth Redirect URI
           </li>
         </ol>
