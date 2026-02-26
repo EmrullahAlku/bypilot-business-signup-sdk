@@ -6,13 +6,13 @@ OAuth and Embedded Signup SDK for connecting business messaging channels (WhatsA
 
 ## Provider Status
 
-| Provider | Status | SDK Class | Playground |
-|---|---|---|---|
-| WhatsApp Embedded Signup | ✅ Fully Working | `WhatsAppProvider` | `/whatsapp` |
-| Facebook Login | ✅ Fully Working | `FacebookProvider` | `/facebook` |
-| Google OAuth | ✅ Fully Working | `GoogleProvider` | `/google` |
-| Instagram (own OAuth) | ⚠️ Playground ready, not fully tested | — | `/instagram` |
-| Instagram via FB Login for Business | ⚠️ Playground ready, not fully tested | — | `/instagram-fb` |
+| Provider                            | Status                                | SDK Class          | Playground      |
+| ----------------------------------- | ------------------------------------- | ------------------ | --------------- |
+| WhatsApp Embedded Signup            | ✅ Fully Working                      | `WhatsAppProvider` | `/whatsapp`     |
+| Facebook Login                      | ✅ Fully Working                      | `FacebookProvider` | `/facebook`     |
+| Google OAuth                        | ✅ Fully Working                      | `GoogleProvider`   | `/google`       |
+| Instagram (own OAuth)               | ⚠️ Playground ready, not fully tested | —                  | `/instagram`    |
+| Instagram via FB Login for Business | ⚠️ Playground ready, not fully tested | —                  | `/instagram-fb` |
 
 ## Packages
 
@@ -142,20 +142,20 @@ Open [http://localhost:3000](http://localhost:3000).
 
 ### Environment Variables
 
-| Variable | Description |
-|---|---|
-| `NEXT_PUBLIC_BASE_URL` | Your app's base URL (e.g. `https://yourapp.com`) |
-| `NEXT_PUBLIC_META_APP_ID` | Meta App ID — WhatsApp & Facebook |
-| `META_APP_SECRET` | Meta App Secret — server only |
-| `NEXT_PUBLIC_WA_CONFIG_ID` | WhatsApp Embedded Signup config_id |
-| `NEXT_PUBLIC_META_CONFIG_ID` | Facebook Login config_id |
-| `NEXT_PUBLIC_FB_SCOPE` | Facebook permission scopes |
-| `NEXT_PUBLIC_IG_APP_ID` | Instagram App ID |
-| `IG_APP_SECRET` | Instagram App Secret — server only |
-| `NEXT_PUBLIC_IG_SCOPE` | Instagram (own OAuth) scopes |
-| `NEXT_PUBLIC_IG_FB_SCOPE` | Instagram via FB Login for Business scopes |
-| `NEXT_PUBLIC_GOOGLE_CLIENT_ID` | Google OAuth Client ID |
-| `GOOGLE_CLIENT_SECRET` | Google OAuth Client Secret — server only |
+| Variable                       | Description                                      |
+| ------------------------------ | ------------------------------------------------ |
+| `NEXT_PUBLIC_BASE_URL`         | Your app's base URL (e.g. `https://yourapp.com`) |
+| `NEXT_PUBLIC_META_APP_ID`      | Meta App ID — WhatsApp & Facebook                |
+| `META_APP_SECRET`              | Meta App Secret — server only                    |
+| `NEXT_PUBLIC_WA_CONFIG_ID`     | WhatsApp Embedded Signup config_id               |
+| `NEXT_PUBLIC_META_CONFIG_ID`   | Facebook Login config_id                         |
+| `NEXT_PUBLIC_FB_SCOPE`         | Facebook permission scopes                       |
+| `NEXT_PUBLIC_IG_APP_ID`        | Instagram App ID                                 |
+| `IG_APP_SECRET`                | Instagram App Secret — server only               |
+| `NEXT_PUBLIC_IG_SCOPE`         | Instagram (own OAuth) scopes                     |
+| `NEXT_PUBLIC_IG_FB_SCOPE`      | Instagram via FB Login for Business scopes       |
+| `NEXT_PUBLIC_GOOGLE_CLIENT_ID` | Google OAuth Client ID                           |
+| `GOOGLE_CLIENT_SECRET`         | Google OAuth Client Secret — server only         |
 
 ## Development
 
@@ -180,6 +180,7 @@ BaseProvider (EventEmitter)
 ```
 
 **Popup flow (WhatsApp, Facebook, Google):**
+
 1. `loginWithPopup()` opens OAuth popup
 2. Popup redirects to `/api/connect/{provider}` — server exchanges code
 3. Server redirects to `/connect/{provider}` — callback page
