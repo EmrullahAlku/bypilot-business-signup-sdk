@@ -4,7 +4,8 @@ export default defineConfig({
   entry: {
     index: 'src/index.ts',
     whatsapp: 'src/providers/whatsapp/index.ts',
-    facebook: 'src/providers/facebook/index.ts'
+    facebook: 'src/providers/facebook/index.ts',
+    google: 'src/providers/google/index.ts'
   },
   format: ['cjs', 'esm'],
   dts: true,

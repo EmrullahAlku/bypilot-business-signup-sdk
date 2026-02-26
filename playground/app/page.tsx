@@ -32,6 +32,16 @@ const providers = [
     border: "#5a2d3a",
   },
   {
+    href: "/google",
+    name: "Google Business",
+    description:
+      "OAuth 2.0 code flow. Format 2 grouped permissions. Demonstrates gmail.readonly scope — fetches last 10 emails after login.",
+    badge: "OAuth 2.0",
+    color: "#4285F4",
+    bg: "#1a1e2e",
+    border: "#2d3d6a",
+  },
+  {
     href: "/instagram-fb",
     name: "Instagram via Facebook Login",
     description:
@@ -82,6 +92,8 @@ export default function IndexPage() {
               ["IG_APP_SECRET", "Instagram App Secret — server only (required)"],
               ["NEXT_PUBLIC_IG_SCOPE", "Instagram permission scopes (optional)"],
               ["NEXT_PUBLIC_IG_FB_SCOPE", "FB Login for Business Instagram scopes (optional)"],
+              ["NEXT_PUBLIC_GOOGLE_CLIENT_ID", "Google OAuth Client ID"],
+              ["GOOGLE_CLIENT_SECRET", "Google OAuth Client Secret — server only"],
             ].map(([key, desc]) => (
               <tr key={key}>
                 <td><code>{key}</code></td>

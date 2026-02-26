@@ -13,7 +13,8 @@ import { NextRequest, NextResponse } from "next/server";
  *   GET https://graph.instagram.com/access_token?grant_type=ig_exchange_token
  */
 export async function GET(request: NextRequest) {
-  const { searchParams, origin } = request.nextUrl;
+  const { searchParams } = request.nextUrl;
+  const origin = process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:3000";
   const code = searchParams.get("code");
   const error = searchParams.get("error");
   const errorReason = searchParams.get("error_reason");

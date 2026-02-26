@@ -185,6 +185,30 @@ h2 {
   opacity: 0.88;
 }
 
+.btn.google {
+  background: #4285F4;
+  color: #fff;
+}
+
+.btn.google:hover:not(:disabled) {
+  background: #3367d6;
+}
+
+/* Code block for format examples */
+.code-block {
+  background: #111;
+  border: 1px solid #2a2a2a;
+  border-radius: 8px;
+  padding: 1rem 1.25rem;
+  font-family: 'Cascadia Code', 'Fira Code', 'Consolas', monospace;
+  font-size: 0.78rem;
+  line-height: 1.6;
+  color: #c9d1d9;
+  overflow-x: auto;
+  white-space: pre;
+  margin: 0;
+}
+
 .btn.small {
   padding: 0.35rem 0.75rem;
   font-size: 0.8rem;

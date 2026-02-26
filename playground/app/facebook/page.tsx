@@ -19,7 +19,7 @@ export default function FacebookPage() {
     () =>
       new FacebookProvider({
         clientId: process.env.NEXT_PUBLIC_META_APP_ID || "",
-        redirectUri: `${process.env.NEXT_PUBLIC_BASE_URL || (typeof window !== "undefined" ? window.location.origin : "http://localhost:3000")}/api/connect/facebook`,
+        redirectUri: `${process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:3000"}/api/connect/facebook`,
         storage: "localStorage",
         configId: process.env.NEXT_PUBLIC_META_CONFIG_ID || "",
         scope:

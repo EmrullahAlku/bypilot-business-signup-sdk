@@ -34,7 +34,7 @@ export default function InstagramPage() {
       return;
     }
 
-    const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || window.location.origin;
+    const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:3000";
     const redirectUri = `${baseUrl}/api/connect/instagram`;
     const scope =
       process.env.NEXT_PUBLIC_IG_SCOPE ||

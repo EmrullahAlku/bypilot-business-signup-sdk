@@ -21,7 +21,7 @@ export default function WhatsAppPage() {
       new WhatsAppProvider({
         clientId: process.env.NEXT_PUBLIC_META_APP_ID || "",
         configId: process.env.NEXT_PUBLIC_WA_CONFIG_ID || "",
-        redirectUri: process.env.NEXT_PUBLIC_BASE_URL || (typeof window !== "undefined" ? window.location.origin : ""),
+        redirectUri: process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:3000",
         storage: "localStorage",
         graphApiVersion: "v24.0",
         sdkVersion: "v24.0",
