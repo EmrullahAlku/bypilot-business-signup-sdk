@@ -176,6 +176,15 @@ h2 {
   opacity: 0.88;
 }
 
+.btn.instagram-fb {
+  background: linear-gradient(135deg, #1877F2 0%, #833ab4 50%, #C13584 100%);
+  color: #fff;
+}
+
+.btn.instagram-fb:hover:not(:disabled) {
+  opacity: 0.88;
+}
+
 .btn.small {
   padding: 0.35rem 0.75rem;
   font-size: 0.8rem;

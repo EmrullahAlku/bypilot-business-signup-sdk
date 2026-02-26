@@ -31,6 +31,16 @@ const providers = [
     bg: "#2e1a20",
     border: "#5a2d3a",
   },
+  {
+    href: "/instagram-fb",
+    name: "Instagram via Facebook Login",
+    description:
+      "Facebook Login for Business with IG_API_ONBOARDING channel. Both tokens returned directly in the redirect hash — no server exchange needed.",
+    badge: "FB Login for Business",
+    color: "#C13584",
+    bg: "#251a2e",
+    border: "#4a2d5a",
+  },
 ];
 
 export default function IndexPage() {
@@ -71,6 +81,7 @@ export default function IndexPage() {
               ["NEXT_PUBLIC_IG_APP_ID", "Instagram App ID — from Business login settings"],
               ["IG_APP_SECRET", "Instagram App Secret — server only (required)"],
               ["NEXT_PUBLIC_IG_SCOPE", "Instagram permission scopes (optional)"],
+              ["NEXT_PUBLIC_IG_FB_SCOPE", "FB Login for Business Instagram scopes (optional)"],
             ].map(([key, desc]) => (
               <tr key={key}>
                 <td><code>{key}</code></td>

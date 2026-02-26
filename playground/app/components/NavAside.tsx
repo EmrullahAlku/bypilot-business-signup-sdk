@@ -8,6 +8,7 @@ const links = [
   { href: "/whatsapp", label: "WhatsApp", icon: "●", color: "#25D366" },
   { href: "/facebook", label: "Facebook", icon: "●", color: "#1877F2" },
   { href: "/instagram", label: "Instagram", icon: "●", color: "#E1306C" },
+  { href: "/instagram-fb", label: "Instagram (FB)", icon: "●", color: "#C13584" },
 ];
 
 export default function NavAside() {
